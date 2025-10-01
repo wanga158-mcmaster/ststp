@@ -1,0 +1,4 @@
+_n -> negative edge signal
+en -> enable
+addr -> address
+inst -> instruction
