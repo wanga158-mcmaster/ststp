@@ -19,6 +19,7 @@ module _subtraction_impl(
         assign P[i] = a[i] | b_inv[i];
         assign C[i + 1] = G[i] | (P[i] & C[i]);
     end
+    
     for (int i = 0; i < 32; ++i) begin
         assign aer[i] = a[i] ^ b_inv[i] ^ c[i];
     end
