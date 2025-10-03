@@ -19,15 +19,15 @@ module mux ( // most common 2 input mux
 
 endmodule;
 
-module mux_gen ( // general mux
+module mux_gen #( // general mux
     parameter WIDTH = 32,
-    parameter N = 1
+    parameter N = 5
 ) (
     input logic [WIDTH - 1:0] arr[2**N],
 
     input logic [N - 1:0] s,
     
-    output logic[WIDTH - 1:0] aer;
+    output logic aer;
 )
 
     assign aer = arr[s];

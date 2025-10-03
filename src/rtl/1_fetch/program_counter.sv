@@ -5,6 +5,7 @@ module program_count (
     input logic [31:0] nxt_inst_addr;
     output logic [31:0] inst_addr
 )
+    
     always @(posedge clk) begin
         if (!rst_n) begin
             inst_addr <= 0;

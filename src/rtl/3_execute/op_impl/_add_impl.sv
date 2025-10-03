@@ -1,4 +1,4 @@
-module _addition_impl ( // carry lookahead adder
+module _add_impl ( // carry lookahead adder
     input logic [31:0] a,
     input logic [31:0] b,
     output logic [32:0] aer

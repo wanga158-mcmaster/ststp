@@ -4,7 +4,7 @@ module _slt_impl ( // instead of setting rd = 1 when rs1 < rs2, set to 32'b111..
     output logic [31:0] aer
 ); 
 
-    logic [1:0] neg;
+    logic [1:0] neg; // a, b, negative
     assign neg = {a[31], b[31]};
     logic [31:0] k1, k2; // less than found, greater than found
 
@@ -29,10 +29,10 @@ module _slt_impl ( // instead of setting rd = 1 when rs1 < rs2, set to 32'b111..
                 k1[31] = 0;
                 k2[31] = 0;
                 for (int i = 30; i >= 0; --i) begin
-                        k1[i] = (~k2[i + 1]) & ((b[i] & ~a[i]) | k1[i + 1]); // b[i] is set and a[i] isn't set -> a is less than b if another mismatch hasn't been found
-                        k2[i] = (~k1[i + 1]) & ((a[i] & ~b[i]) | k2[i + 1]);
+                    k1[i] = (~k2[i + 1]) & ((b[i] & ~a[i]) | k1[i + 1]); // b[i] is set and a[i] isn't set -> a is less than b if another mismatch hasn't been found
+                    k2[i] = (~k1[i + 1]) & ((a[i] & ~b[i]) | k2[i + 1]);
                 end
-                aer = 32{k2[0]}; // if a is greater in magnitude it is less than b since the sign is negative
+                aer = 32{k1[0]};
             end
             default: begin // impossible
             end

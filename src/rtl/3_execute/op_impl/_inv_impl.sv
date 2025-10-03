@@ -1,4 +1,4 @@
-module _inverter_impl (
+module _inv_impl (
     input logic [31:0] a,
     output logic [31:0] aer
 );

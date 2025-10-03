@@ -1,4 +1,4 @@
-module _subtraction_impl (
+module _sub_impl (
     input logic [31:0] a,
     input logic [31:0] b,
     output logic [32:0] aer
@@ -9,7 +9,7 @@ module _subtraction_impl (
         .a(b),
         .aer(b_inv)
     )
-
+    
     logic [31:0] G, P;
     logic [32:0] C;
     
