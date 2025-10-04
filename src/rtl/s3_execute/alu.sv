@@ -3,6 +3,7 @@ module alu_r (
 
     input logic [31:0] src1,
     input logic [31:0] src2,
+    input logic [31:0] pc,
 
     output logic [31:0] d_out
 );
@@ -10,13 +11,16 @@ module alu_r (
     logic op_en[16];
     
     always_comb begin
-        for (int i = 0; i < 16; ++i) {
-            if (int'(op_type) == i) begin
-                op_en[i] = 1;
-            end else begin
-                op_en[i] = 0;
+        if (branch) begin
+        end else begin
+            for (int i = 0; i < 16; ++i) begin
+                if (int'(op_type) == i) begin
+                    op_en[i] = 1;
+                end else begin
+                    op_en[i] = 0;
+                end
             end
-        }
+        end
     end
 
     logic [31:0] rslt[16];
@@ -91,6 +95,13 @@ module alu_r (
 
         .aer(rslt[9])
     );
+    _eq op010(
+        .a(src1),
+        .b(src2),
+        .en(op_en[10]),
+
+        .aer(rslt[10])
+    )
 
     mux_gen #(
         .WIDTH(16),

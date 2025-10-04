@@ -4,7 +4,7 @@ module _add(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -24,7 +24,7 @@ module _sub(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -44,7 +44,7 @@ module _xor(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -64,7 +64,7 @@ module _or(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -84,7 +84,7 @@ module _and(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -104,7 +104,7 @@ module _sll(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -124,7 +124,7 @@ module _srl(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -144,7 +144,7 @@ module _sra(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -164,7 +164,7 @@ module _slt(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
@@ -184,11 +184,71 @@ module _sltu(
     input logic en,
 
     input logic [31:0] aer
-)
+);
 
     logic [31:0] rslt;
 
     _sltu_impl(
+        .a(a),
+        .b(b),
+        .aer(rslt)
+    );
+
+    assign aer = rslt & {32{en}};
+
+endmodule;
+
+module _eq(
+    input logic [31:0] a,
+    input logic [31:0] b,
+    input logic en,
+
+    input logic [31:0] aer
+);
+
+    logic [31:0] rslt;
+
+    _eq_impl(
+        .a(a),
+        .b(b),
+        .aer(rslt)
+    );
+
+    assign aer = rslt & {32{en}};
+
+endmodule;
+
+module _ge(
+    input logic [31:0] a,
+    input logic [31:0] b,
+    input logic en,
+
+    input logic [31:0] aer
+);
+
+    logic [31:0] rslt;
+
+    _ge_impl(
+        .a(a),
+        .b(b),
+        .aer(rslt)
+    );
+
+    assign aer = rslt & {32{en}};
+
+endmodule;
+
+module _geu(
+    input logic [31:0] a,
+    input logic [31:0] b,
+    input logic en,
+
+    input logic [31:0] aer
+);
+
+    logic [31:0] rslt;
+
+    _geu_impl(
         .a(a),
         .b(b),
         .aer(rslt)

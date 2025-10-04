@@ -1,48 +1,50 @@
-module dff ( // non-synchronous reset
+module d_register #( // synchronous reset d register with flush and enable
+    parameter integer W = 32,
+    parameter logic [31:0] rst_vect = '0,
+) (
     input logic clk,
     input logic rst_n,
 
-    input logic d,
-    output logic q
-)
+    input logic en,
+    input logic flush,
 
-    always_ff @(posedge clk) begin
-        if (rst_n) begin
-            q <= d;
-        end else begin
-            q <= 0;
-        end
-    end;
-
-endmodule
-
-module dff_sr ( // synchronous reset
-    input logic clk,
-    input logic rst_n,
-
-    input logic d,
-    output logic q
-)
-
-    always_ff @ (posedge clk, negedge rst_n) begin
-        if (rst_n) begin
-            q <= d;
-        end else begin
-            q <= 0;
-        end
-    end;
-
-endmodule
-
-module dff_nr (
-    input logic clk,
+    input logic [W - 1:0] din,
+    output logic [W - 1:0] dout
+);
     
-    input logic d,
-    input logic q
-)
-
-    always_ff @ (posedge clk) begin
-        q <= d;
+    always_ff @(posedge clk) begin
+        if (~rst_n) begin
+            dout <= rst_vect;
+        end else if (flush) begin
+            dout <= {W{1'b0}};
+        end else if (en) begin
+            dout <= din;
+        end
     end
 
-endmodule
+endmodule;
+
+module d_ff #(
+    parameter logic rst_val = 0;
+) (
+    input logic clk,
+    input logic rst_n,
+
+    input logic en,
+    input logic flush,
+
+    input logic [31:0] din,
+    output logic [31:0] dout
+);
+
+    always_ff @(posedge clk) begin
+        if (~rst_n) begin
+            dout <= rst_val;
+        end else if (flush) begin
+            dout <= 0;
+        end else if (en) begin
+            dout <= din;
+        end
+    end
+
+endmodule;

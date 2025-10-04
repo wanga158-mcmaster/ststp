@@ -7,7 +7,7 @@ module mux ( // most common 2 input mux
     input logic s,
     
     output logic [WIDTH - 1:0] aer
-)
+);
 
     always_comb begin
         case(s)
@@ -28,8 +28,10 @@ module mux_gen #( // general mux
     input logic [N - 1:0] s,
     
     output logic aer;
-)
+);
 
-    assign aer = arr[s];
+    always_comb begin
+        aer = arr[s];
+    end
 
 endmodule;

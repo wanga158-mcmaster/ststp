@@ -10,9 +10,9 @@ module register_file (
     input logic [4:0] write_addr,
     input logic [31:0] write_data
 )
-
+    
     logic [31:0] registers[32];
-
+    
     always @(posedge clk) begin
         if (!rst_n) begin
             for (int i = 0; i < 31; ++i) begin
