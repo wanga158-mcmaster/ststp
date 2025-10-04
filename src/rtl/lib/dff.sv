@@ -1,5 +1,5 @@
 module d_register #( // synchronous reset d register with flush and enable
-    parameter integer W = 32,
+    parameter integer _W = 32,
     parameter logic [31:0] rst_vect = '0,
 ) (
     input logic clk,
@@ -8,15 +8,15 @@ module d_register #( // synchronous reset d register with flush and enable
     input logic en,
     input logic flush,
 
-    input logic [W - 1:0] din,
-    output logic [W - 1:0] dout
+    input logic [_W - 1:0] din,
+    output logic [_W - 1:0] dout
 );
     
     always_ff @(posedge clk) begin
         if (~rst_n) begin
             dout <= rst_vect;
         end else if (flush) begin
-            dout <= {W{1'b0}};
+            dout <= {_W{1'b0}};
         end else if (en) begin
             dout <= din;
         end

@@ -2,36 +2,33 @@ module fetch(
     input logic clk,
     input logic rst_n,
 
-    input logic [31:0] rst_addr,
+    input logic [31:0] rst_addr, // pc reset address
 
-    input logic [31:0] instr_mem_in,
-    output logic [31:0] instr_mem_out,
-    output logic [31:0] instr_addr,
+    input logic [31:0] instr_mem, // instruction memory
+
+    output logic [31:0] instr_mem_out, // instruction memory unchanged
+    output logic [31:0] instr_addr_out, // instruction address out
+
+    input logic [31:0] jmp_addr, // jump address from writeback
+    input logic jmp_take // jump take from writeback
 );
+
+    logic [31:0] instr_addr;
 
     program_counter pc(
         .clk(clk),
         .rst_n(rst_n),
-        .load(1'b0),
-        .stall(1'b0),
-        .inc(1'b1),
+        .inc(~jmp_take),
+        .load(jmp_take),
+        .stll(),
 
-        .ld_addr({32{1'b0}}),
+        .ld_addr(jmp_addr),
         .rst_addr(rst_addr),
 
-        .pc_out(instr)
+        .pc_out(instr_addr)
     );
 
-    d_register pc_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0)
-
-        .din(pc_out),
-        .dout(instr_addr)
-    )
+    assign instr_mem_out = insr_mem;
 
     d_register s_instr (
         .clk(clk),
@@ -40,8 +37,8 @@ module fetch(
         .en(1'b1),
         .flush(1'b0),
 
-        .din(instr_mem_in),
-        .dout(instr_mem_out),
+        .din(instr_addr),
+        .dout(instr_addr_out),
     )
 
 endmodule;

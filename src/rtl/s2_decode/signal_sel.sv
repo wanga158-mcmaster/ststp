@@ -23,7 +23,6 @@ module signal_sel (
     logic [24:0] raw_imm;
     assign raw_imm = op[31:7];
 
-
     assign rd = op[11:7];
     assign rs1 = op[19:15];
     assign rs2 = op[24:20];

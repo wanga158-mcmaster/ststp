@@ -1,12 +1,12 @@
 module mux ( // most common 2 input mux
-    parameter WIDTH = 32
+    parameter _W = 32
 ) (
-    input logic [WIDTH - 1:0] a,
-    input logic [WIDTH - 1:0] b,
+    input logic [_W - 1:0] a,
+    input logic [_W - 1:0] b,
 
     input logic s,
     
-    output logic [WIDTH - 1:0] aer
+    output logic [_W - 1:0] aer
 );
 
     always_comb begin
@@ -20,12 +20,12 @@ module mux ( // most common 2 input mux
 endmodule;
 
 module mux_gen #( // general mux
-    parameter WIDTH = 32,
-    parameter N = 5
+    parameter _W = 32,
+    parameter _N = 5
 ) (
-    input logic [WIDTH - 1:0] arr[2**N],
+    input logic [_W - 1:0] arr[2**_N],
 
-    input logic [N - 1:0] s,
+    input logic [_N - 1:0] s,
     
     output logic aer;
 );

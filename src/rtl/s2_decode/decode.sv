@@ -19,7 +19,10 @@ module decode(
     
     input logic [4:0] rd_ind,
     input logic [31:0] rd_dat,
-    input logic rd_write_en,
+    input logic rd_dat_take,
+
+    input logic [31:0] mem_dat,
+    input logic mem_dat_take
 );
 
     logic [3:0] op_type_t;
@@ -46,6 +49,10 @@ module decode(
     assign rs_indx[1] = rs2_ind_t;
 
     logic [31:0] rs_dat_t[2], rd_dat_t;
+    logic rd_write_en;
+
+    assign rd_dat_t = rd_dat & {32{rd_dat_take}} | mem_dat & {32{mem_dat_take}};
+    assign rd_write_en = rd_dat_take | mem_dat_take;
 
     register_file regf(
         .clk(clk),
@@ -55,13 +62,13 @@ module decode(
         .read_addr(rs_indx),
         .read_data(rs_dat_t),
 
-        .write_en(rd_write_en),
+        .write_en(rd_write),
         .write_addr(rd_ind),
         .write_data(rd_dat_t)
     );
 
     d_register #(
-        .W(32)
+        ._W(32)
     ) instr_addr_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -74,7 +81,7 @@ module decode(
     )
 
     d_register #(
-        .W(4)
+        ._W(4)
     ) op_type (
         .clk(clk),
         .rst_n(rst_n),
@@ -87,7 +94,7 @@ module decode(
     )
 
     d_register #(
-        .W(5)
+        ._W(5)
     ) op_spec (
         .clk(clk),
         .rst_n(rst_n),
@@ -100,7 +107,7 @@ module decode(
     )
 
     d_register #(
-        .W(5)
+        ._W(5)
     ) rs1_ind_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -113,7 +120,7 @@ module decode(
     )
 
     d_register #(
-        .W(5)
+        ._W(5)
     ) rs2_ind_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -126,7 +133,7 @@ module decode(
     )
 
     d_register #(
-        .W(5)
+        ._W(5)
     ) rd_ind_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -139,7 +146,7 @@ module decode(
     )
 
     d_register #(
-        .W(32)
+        ._W(32)
     ) rs1_dat_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -152,7 +159,7 @@ module decode(
     )
 
     d_register #(
-        .W(32)
+        ._W(32)
     ) rs2_dat_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -165,7 +172,7 @@ module decode(
     )
 
     d_register #(
-        .W(32)
+        ._W(32)
     ) rd_dat_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -178,7 +185,7 @@ module decode(
     )
 
     d_register #(
-        .W(32)
+        ._W(32)
     ) imm_s (
         .clk(clk),
         .rst_n(rst_n),
