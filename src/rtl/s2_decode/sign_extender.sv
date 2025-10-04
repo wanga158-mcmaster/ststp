@@ -1,4 +1,4 @@
-module sign_extender ( // depreciated / reference
+module sign_extender ( // depreciated/reference
     input logic [24:0] imm_val, // non-extended input
     input logic [2:0] imm_type, // bit source
     output logic [31:0] ext_imm // extended output

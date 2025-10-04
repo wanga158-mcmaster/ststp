@@ -22,7 +22,7 @@ module fetch(
         .pc_out(instr)
     );
 
-    d_register s_pc (
+    d_register pc_s (
         .clk(clk),
         .rst_n(rst_n),
 
@@ -31,7 +31,6 @@ module fetch(
 
         .din(pc_out),
         .dout(instr_addr)
-        
     )
 
     d_register s_instr (

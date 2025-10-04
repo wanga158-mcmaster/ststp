@@ -3,7 +3,13 @@ module signal_sel (
 
     output logic [3:0] op_type, // 0 -> math, 1 -> load/store, 2 -> branch, 3 -> load
     output logic [4:0] op_spec, // specific operation of type
-    output logic [31:0] imm // assembled immediate
+    output logic [31:0] imm, // assembled immediate
+    output logic r_type, // for arithmetic type operations -> distinguish between immediate and register; 0 -> rs2, 1 -> imm
+    
+    output logic [31:0] rs1_ind,
+    output logic [31:0] rs2_ind,
+    output logic [31:0] rd_ind
+
 );
 
     logic [6:0] opcode;
@@ -16,6 +22,11 @@ module signal_sel (
 
     logic [24:0] raw_imm;
     assign raw_imm = op[31:7];
+
+
+    assign rd = op[11:7];
+    assign rs1 = op[19:15];
+    assign rs2 = op[24:20];
 
     always_comb begin
         case (opcode)
@@ -61,7 +72,8 @@ module signal_sel (
                         endcase
                     end
                 endcase
-                imm = 0;
+                imm = 1'b0;
+                r_type = 1'b0;
             end
             7'0010011: begin // i-type fmt, arithmetic immediate
                 op_type = 3'b000;
@@ -96,6 +108,7 @@ module signal_sel (
                     end
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[24:13]};
+                r_type = 1'b1;
             end
             7'0000011: begin // i-type fmt, load
                 op_type = 3'b001;
@@ -107,6 +120,7 @@ module signal_sel (
                     3'b101: op_spec = 4'b0100; // lhu
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[24:13]};
+                r_type = 1'b0; // dont care
             end
             7'0100011: begin // s-type fmt, store
                 op_type = 3'b001;
@@ -116,6 +130,7 @@ module signal_sel (
                     3'b010: op_spec = 4'b0111; // sw
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[24:18], raw_imm[4:0]}
+                r_type = 1'b0; // don't care
             end
             7'b1100011: begin // b-type fmt, branch
                 op_type = 3'b010;
@@ -128,19 +143,34 @@ module signal_sel (
                     3'b111: op_spec = 4'b0101; // bgeu
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[0], raw_imm[23:18], raw_imm[4:1], 1'b0}
+                r_type = 1'b0; // don't care
             end
             7'b1101111: begin // j-type fmt, jump and link
-                op_type = 3'b010;
-                op_spec = 0;
+                op_type = 3'b011;
+                op_spec = 1'b0;
                 imm = {{12{raw_imm[24]}}, raw_imm[12:5], raw_imm[13], raw_imm[23:14], 1'b0}
-
+                r_type = 1'b0; // don't care
             end
             7'b1100111: begin // i-type fmt, jump and link reg
-                op_type = 3'b010;
-                op_spec = 0;
+                op_type = 3'b011;
+                op_spec = 1'b1;
                 imm = {{20{raw_imm[24]}}, raw_imm[24:13]};
+                r_type = 1'b0; // don't care
+            end
+            7'b0110111: begin // u-type fmt, load upper immediate
+                op_type = 3'b100;
+                op_spec = 1'b0;
+                imm = {imm_val[24:5], 12{1'b0}};
+                r_type = 1'b0; // don't care
+            end
+            7'b0010111: begin // u-type fmt, add upper imm to pc
+                op_type = 3'b100;
+                op_spec = 1'b1;
+                imm = {imm_val[24:5], 12{1'b0}};
+                r_type = 1'b0; // don't care
             end
             default: begin
+                imm = {32{1'b1}};
             end
         endcase
     end
