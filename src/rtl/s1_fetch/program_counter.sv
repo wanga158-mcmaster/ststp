@@ -42,8 +42,8 @@ module pc_adder (
 );
     
     always_comb begin
-        if (mode) nxt_pc <= nxt_pc + 2;
-        else nxt_pc <= nxt_pc + 4;
+        if (mode) nxt_pc = nxt_pc + 2;
+        else nxt_pc = nxt_pc + 4;
     end
 
 endmodule;
