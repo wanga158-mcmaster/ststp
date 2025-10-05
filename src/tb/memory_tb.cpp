@@ -116,6 +116,7 @@ int main(int argc, char** argv, char** env) {
 
 /*
 
+
 verilator --trace -cc memory.sv --exe memory_tb.cpp
 
 make -C obj_dir -f Vmemory.mk Vmemory

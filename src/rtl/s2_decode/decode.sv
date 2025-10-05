@@ -1,3 +1,6 @@
+`include "register_file.sv"
+`include "signal_sel.sv"
+
 module decode(
     input logic clk,
     input logic rst_n,
@@ -15,10 +18,11 @@ module decode(
     output logic [31:0] rs1_dat,
     output logic [31:0] rs2_dat,
     output logic [31:0] imm,
-    output logic [31:0] r_type,
+    output logic r_type,
     
-    input logic [4:0] rd_ind,
-    input logic [31:0] rd_dat,
+    /* data from writeback stage */
+    input logic [4:0] rd_ind_in,
+    input logic [31:0] rd_dat_in,
     input logic rd_dat_take,
 
     input logic [31:0] mem_dat,
@@ -51,7 +55,7 @@ module decode(
     logic [31:0] rs_dat_t[2], rd_dat_t;
     logic rd_write_en;
 
-    assign rd_dat_t = rd_dat & {32{rd_dat_take}} | mem_dat & {32{mem_dat_take}};
+    assign rd_dat_t = rd_dat_in & {32{rd_dat_take}} | mem_dat & {32{mem_dat_take}};
     assign rd_write_en = rd_dat_take | mem_dat_take;
 
     register_file regf(
@@ -63,7 +67,7 @@ module decode(
         .read_data(rs_dat_t),
 
         .write_en(rd_write),
-        .write_addr(rd_ind),
+        .write_addr(rd_ind_in),
         .write_data(rd_dat_t)
     );
 

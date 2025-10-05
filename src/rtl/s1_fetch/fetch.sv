@@ -1,3 +1,5 @@
+`include "program_counter.sv"
+
 module fetch(
     input logic clk,
     input logic rst_n,
@@ -5,9 +7,10 @@ module fetch(
     input logic [31:0] rst_addr, // pc reset address
 
     input logic [31:0] instr_mem, // instruction memory
-
+    
     output logic [31:0] instr_mem_out, // instruction memory unchanged
-    output logic [31:0] instr_addr_out, // instruction address out
+    output logic [31:0] instr_addr_to_mem, // instruction address sent to instruction memory
+    output logic [31:0] instr_addr_to_decode, // instruction address sent to decode
 
     input logic [31:0] jmp_addr, // jump address from writeback
     input logic jmp_take // jump take from writeback
@@ -28,7 +31,8 @@ module fetch(
         .pc_out(instr_addr)
     );
 
-    assign instr_mem_out = insr_mem;
+    assign instr_addr_to_mem = instr_addr;
+    assign instr_mem_out = instr_mem;
 
     d_register s_instr (
         .clk(clk),
@@ -38,7 +42,9 @@ module fetch(
         .flush(1'b0),
 
         .din(instr_addr),
-        .dout(instr_addr_out),
+        .dout(instr_addr_out_to_decode),
     )
+    
+    
 
 endmodule;

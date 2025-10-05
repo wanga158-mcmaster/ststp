@@ -1,3 +1,20 @@
+`include "op_impl/_add_impl"
+`include "op_impl/_and_impl"
+`include "op_impl/_eq_impl"
+`include "op_impl/_ge_impl"
+`include "op_impl/_geu_impl"
+`include "op_impl/_inv_impl"
+`include "op_impl/_neq_impl"
+`include "op_impl/_or_impl"
+`include "op_impl/_sll_impl"
+`include "op_impl/_slt_impl"
+`include "op_impl/_sltu_impl"
+`include "op_impl/_sra_impl"
+`include "op_impl/_srl_impl"
+`include "op_impl/_sub_impl"
+`include "op_impl/_xor_impl"
+
+
 module _add(
     input logic [31:0] a,
     input logic [31:0] b,

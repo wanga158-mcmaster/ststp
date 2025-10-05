@@ -1,3 +1,5 @@
+`include "op_set.sv"
+
 module execute (
     input logic clk,
     input logic rst_n,
@@ -23,7 +25,7 @@ module execute (
 
     /* forwarded to memory unit in advance before clk posedge */
     output logic [31:0] mem_addr_out, // memory address data
-    output logic [31:0] mem_dat_out, // store memory data
+    output logic [31:0] mem_dat_out, //  memory data for sb, sh, sw
     output logic [31:0] mem_read_en, // data section read enable
     output logic [31:0] mem_write_en // data section write enable
 );
