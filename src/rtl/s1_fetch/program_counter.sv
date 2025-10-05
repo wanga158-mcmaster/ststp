@@ -22,7 +22,7 @@ module program_counter (
 
         .addr_inc(pc_inc)
     )
-
+ 
     always_ff @(posedge clk) begin // to do: check for valid address
         if (!rst_n) nxt_pc <= rst_addr;
         else if (ld) nxt_pc <= ld_addr;

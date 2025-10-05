@@ -186,7 +186,6 @@ module execute (
                 src2[0] = imm;
                 op_en[0] = 1;
                 mem_addr_out = rslt[0];
-                mem_dat_out = rs2_dat;
                 case(op_spec)
                     4'b0000: begin // lb
                         mem_read_en = 1;
@@ -211,14 +210,17 @@ module execute (
                     4'b0101: begin // sb
                         mem_read_en = 0;
                         mem_write_en = 1;
+                        mem_dat_out = {24{1'b0}, rs2_dat[7:0]};
                     end
                     4'b0110: begin // sh
                         mem_read_en = 0;
                         mem_write_en = 1;
+                        mem_dat_out = {16{1'b0}, rs2_dat[15:0]};
                     end
                     4'b0111: begin // sw
                         mem_read_en = 0;
                         mem_write_en = 1;
+                        mem_dat_out = rs2_dat;
                     end
                     default: begin
                     end

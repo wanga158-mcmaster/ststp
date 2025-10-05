@@ -25,6 +25,7 @@ module writeback(
 );
 
     logic rd_dat_take_t, mem_dat_take_t, jmp_take_t;
+    logic [31:0] mem_dat_t;
 
     always_comb begin
         case (op_type)
@@ -37,10 +38,38 @@ module writeback(
                 rd_dat_take = 0;
                 jmp_take_t = 0;
                 case (op_spec)
-                    4'b0101: mem_dat_take_t = 0; // sb
-                    4'b0110: mem_dat_take_t = 0; // sh
-                    4'b0111: mem_dat_take_t = 0; // sw
-                    default: mem_dat_take_t = 1; // load
+                    4'b0000: begin // lb
+                        mem_dat_t = {24{mem_dat[7]}, mem_dat[7:0]};
+                        mem_dat_take_t = 1;
+                    end
+                    4'b0001: begin // lh
+                        mem_dat_t = {16{mem_dat[15]}, mem_dat[15:0]};
+                        mem_dat_take_t = 1;
+                    end
+                    4'b0010: begin // lw
+                        mem_dat_t = mem_dat;
+                        mem_dat_take_t = 1;
+                    end
+                    4'b0011: begin // lbu
+                        mem_dat_t = {24{1'b0}, mem_dat[7:0]};
+                        mem_dat_take_t = 1;
+                    end
+                    4'b0100: begin // lhu
+                        mem_dat_t = {16{1'b0}, mem_dat[15:0]};
+                        mem-dat_take_t = 1;
+                    end
+                    4'b0101: begin // sb
+                        mem_dat_t = 0;
+                        mem_dat_take_t = 0;
+                    end
+                    4'b0110: begin
+                        mem_dat_t = 0;
+                        mem_dat_take_t = 0; // sh
+                    end
+                    4'b0111: begin
+                        mem_dat_t = 0;
+                        mem_dat_take_t = 0; // sw
+                    end
                 endcase
             end
             3'b010: begin // branch
@@ -105,7 +134,7 @@ module writeback(
         .en(),
         .flush(),
         
-        .din(mem_dat),
+        .din(mem_dat_t),
         .dout(mem_dat_out)
     );
 
