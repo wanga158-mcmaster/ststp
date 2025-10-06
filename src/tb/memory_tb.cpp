@@ -19,7 +19,6 @@ int main(int argc, char** argv, char** env) {
     int pcc = 0; // posedge clock count
 
     while (sim_time < MAX_SIM_TIME) {
-
         dut->clk ^= 1;
         dut->eval();
         if (dut->clk) {
@@ -105,7 +104,7 @@ int main(int argc, char** argv, char** env) {
             }
         }
         m_t->dump(sim_time);
-        sim_time++;
+        sim_time += 2;
     }
 
     m_t->close();
