@@ -27,7 +27,9 @@ module execute (
     output logic [31:0] mem_addr_out, // memory address data
     output logic [31:0] mem_dat_out, //  memory data for sb, sh, sw
     output logic [31:0] mem_read_en, // data section read enable
-    output logic [31:0] mem_write_en // data section write enable
+    output logic [31:0] mem_write_en, // data section write enable
+
+    input logic flsh
 );
     
     logic op_en[32];

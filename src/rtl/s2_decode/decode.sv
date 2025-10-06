@@ -26,7 +26,9 @@ module decode(
     input logic rd_dat_take,
 
     input logic [31:0] mem_dat,
-    input logic mem_dat_take
+    input logic mem_dat_take,
+
+    input logic flush
 );
 
     logic [3:0] op_type_t;
