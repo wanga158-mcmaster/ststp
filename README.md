@@ -1,9 +1,8 @@
-::: center
-**ststp**\
-**a Risc-V based processor implementation**\
-Serves more for my own learning experiment than for any real-world use
-cases.\
-:::
+# ststp
+
+a risc-v based implementation
+
+serves more for my own experimentation than any real-world usecases
 
 # Device Overview
 
