@@ -15,7 +15,7 @@ compressed, and bit manipulation extensions soon.
 
 ## Top-Level Block Diagram
 
-![block diagram as of now](docs/img/block_diagram.png){#fig1 width="100%"}
+![block diagram as of now](docs/img/block_diagram.png)
 
 ## Memory
 
