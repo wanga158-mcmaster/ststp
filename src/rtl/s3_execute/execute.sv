@@ -1,317 +1,367 @@
 `include "op_set.sv"
 
+`ifndef _TYPES_H
+`include "../lib/types.svh"
+`endif
+
+`include "../lib/dff.sv"
+
+
 module execute (
     input logic clk,
     input logic rst_n,
 
-    input logic [31:0] instr_addr_in, // address of current instruction
-    input logic [3:0] op_type,
-    input logic [4:0] op_spec,
+    /* decode and execute interface */
+    input d_e_WI d_in,
 
-    input logic [4:0] rs1_ind,
-    input logic [4:0] rs2_ind,
-    input logic [4:0] rd_ind,
-    input logic [31:0] rs1_dat,
-    input logic [31:0] rs2_dat,
-    input logic [31:0] imm,
-    input logic r_type,
+    /* execute and writeback interface */
+    output e_w_WI e_out,
 
-    output logic [3:0] op_type_out, // operation type out, unchanged
-    output logic [4:0] op_spec_out, // operation spec out, unchanged
-    output logic [4:0] rd_ind_out, // rd index out, unchanged
-    output logic [31:0] rd_dat_out, // rd data
-    output logic [31:0] jmp_addr_out, // jump pc address data
-    output logic jmp_take // jump or not
+    /* writeback and execute interface, to be used in the future */
+    input w_e_WI w_in,
 
-    /* forwarded to memory unit in advance before clk posedge */
+    /* execute and data memory interface; forwarded to memory unit in advance */
     output logic [31:0] mem_addr_out, // memory address data
-    output logic [31:0] mem_dat_out, //  memory data for sb, sh, sw
-    output logic [31:0] mem_read_en, // data section read enable
-    output logic [31:0] mem_write_en, // data section write enable
+    output logic [31:0] mem_dat_out, //  memory data for sb, sh, sw etc
+    output logic mem_read_en, // storage section read enable
+    output logic mem_write_en, // storage section write enable
 
-    input logic flsh
+    input logic stall_in, // previous stage stall
+    output logic stall_out // signal to next stage stall
 );
     
-    logic op_en[32];
+    e_w_WI e_t;
+    assign e_t.rd_ind = d_in.rd_ind;
 
-    logic [31:0] rslt[32], src1[32], src2[32];
+    logic op_en1[128], op_en2[128];
+    logic [31:0] rslt1[128], rslt2[128], src1[2], src2[2];
     logic [31:0] calc_addr;
 
     _add add1(
         .a(src1[0]),
         .b(src2[0]),
-        .en(op_en[0]),
+        .en(op_en1[ADD]),
 
-        .aer(rslt[0])
+        .aer(rslt1[ADD])
     );
     _add add2(
-        .a(src1[11]),
-        .b(src2[11]),
-        .en(op_en[11]),
-
-        .aer(rslt[11])
-    );
-    _sub sub1(
         .a(src1[1]),
         .b(src2[1]),
-        .en(op_en[1]),
+        .en(op_en2[ADD]),
 
-        .aer(rslt[1])
+        .aer(rslt2[ADD])
+    );
+    _sub sub1(
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SUB]),
+
+        .aer(rslt1[SUB])
     );
     _xor xor1(
-        .a(src1[2]),
-        .b(src2[2]),
-        .en(op_en[2]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[XOR]),
 
-        .aer(rslt[2])
+        .aer(rslt1[XOR])
     );
     _or or1(
-        .a(src1[3]),
-        .b(src2[3]),
-        .en(op_en[3]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[OR]),
 
-        .aer(rslt[3])
+        .aer(rslt1[OR])
     );
     _and and1(
-        .a(src1[4]),
-        .b(src2[4]),
-        .en(op_en[4]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[AND]),
 
-        .aer(rslt[4])
+        .aer(rslt1[AND])
     );
     _sll sll1(
-        .a(src1[5]),
-        .b(src2[5]),
-        .en(op_en[5]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SLL]),
 
-        .aer(rslt[5])
+        .aer(rslt1[SLL])
     );
     _srl srl1(
-        .a(src1[6]),
-        .b(src2[6]),
-        .en(op_en[6]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SRL]),
 
-        .aer(rslt[6])
+        .aer(rslt1[SRL])
     );
     _sra sra1(
-        .a(src1[7]),
-        .b(src2[7]),
-        .en(op_en[7]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SRA]),
 
-        .aer(rslt[7])
+        .aer(rslt1[SRA])
     );
     _slt slt1(
-        .a(src1[8]),
-        .b(src2[8]),
-        .en(op_en[8]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SLT]),
 
-        .aer(rslt[8])
+        .aer(rslt1[SLT])
     );
     _sltu sltu1(
-        .a(src1[9]),
-        .b(src2[9]),
-        .en(op_en[9]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[SLTU]),
 
-        .aer(rslt[9])
+        .aer(rslt1[SLTU])
     );
     _eq eq1(
-        .a(src1[10]),
-        .b(src2[10]),
-        .en(op_en[10]),
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[EQ]),
 
-        .aer(rslt[10])
+        .aer(rslt1[EQ])
     );
+    _mul mul1(
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[MUL]),
 
-    logic [31:0] rd_dat_out_t, jmp_addr_out_t;
-    logic jmp_take_t;
+        .aer(rslt1[MUL])
+    );
+    _div div1(
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[DIV]),
+
+        .aer(rslt1[DIV]),
+    );
+    _rem rem1(
+        .a(src1[0]),
+        .b(src2[0]),
+        .en(op_en1[REM]),
+
+        .aer(rslt1[REM])
+    )
+
+    logic r_tk;
+    assign r_tk = op_spec[6];
 
     always_comb begin
-        for (int i = 0; i < 32; ++i) begin // reset all ops and sources
-                    op_en[i] = 0;
-                    src1[i] = 0;
-                    src2[i] = 0;
+        for (int i = 0; i < 2; ++i) begin
+            src1[i] = 0;
+            src2[i] = 0;
         end
+        for (int i = 0; i < 128; ++i) begin
+            op_en1[i] = 0;
+            op_en2[i] = 0;
+        end
+        mem_addr_out = 0;
+        mem_dat_out = 0;
         mem_read_en = 0; // reset mem write and read
         mem_write_en = 0;
-        case (op_type)           
-            3'b000: begin // basic math
-                case (op_spec):
-                    4'b0000: begin
-                        op_en[0] = 1;
-                        src1[0] = rs1_dat;
-                        src2[0] = (~r_type) ? rs2_dat : imm;
+        case (op_type)
+            ARITHMETIC: begin // basic math
+                case (op_spec[5:0]):
+                    ADD: begin
+                        op_en1[ADD] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[ADD];
                     end
-                    4'b0001: begin
-                        op_en[1] = 1;
-                        src1[1] = rs1_dat;
-                        src2[1] = (~r_type) ? rs2_dat : imm;
+                    SUB: begin
+                        op_en1[SUB] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SUB];
                     end
-                    4'b0010: begin
-                        op_en[2] = 1;
-                        src1[2] = rs1_dat;
-                        src2[2] = (~r_type) ? rs2_dat : imm;
+                    XOR: begin
+                        op_en1[XOR] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[XOR];
                     end
-                    4'b0011: begin
-                        op_en[3] = 1;
-                        src1[3] = rs1_dat;
-                        src2[3] = (~r_type) ? rs2_dat : imm;
+                    OR: begin
+                        op_en1[OR] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[OR];
+
                     end
-                    4'b0100: begin
-                        op_en[4] = 1;
-                        src1[4] = rs1_dat;
-                        src2[4] = (~r_type) ? rs2_dat : imm;
+                    AND: begin
+                        op_en1[AND] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[AND];
+
                     end
-                    4'b0101: begin
-                        op_en[5] = 1;
-                        src1[5] = rs1_dat;
-                        src2[5] = (~r_type) ? rs2_dat : imm;
+                    SLL: begin
+                        op_en1[SLL] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SLL];
+
                     end
-                    4'b0110: begin
-                        op_en[6] = 1;
-                        src1[6] = rs1_dat;
-                        src2[6] = (~r_type) ? rs2_dat : imm;
+                    SRL: begin
+                        op_en1[SRL] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SRL];
+
                     end
-                    4'b0111: begin
-                        op_en[7] = 1;
-                        src1[7] = rs1_dat;
-                        src2[7] = (~r_type) ? rs2_dat : imm;
+                    SRA: begin
+                        op_en1[SRA] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SRA];
+
                     end
-                    4'b1000: begin
-                        op_en[8] = 1;
-                        src1[8] = rs1_dat;
-                        src2[8] = (~r_type) ? rs2_dat : imm;
+                    SLT: begin
+                        op_en1[SLT] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SLT];
+
+                    end
+                    SLTU: begin
+                        op_en1[SLTU] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[SLTU];
+
+                    end
+                    MUL: begin
+                        op_en1[MUL] = 1;
+                        src1[8] = d_in.rs1_dat;
+                        src2[8] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[MUL];
+
+                    end
+                    DIV: begin
+                        op_en1[DIV] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[DIV];
+
+                    end
+                    REM: begin
+                        op_en1[REM] = 1;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        e_t.reg_dat = rslt1[REM];
                     end
                     default: begin
                     end
                 endcase
             end
-            3'b001: begin // load and store
-                src1[0] = rs1_dat;
-                src2[0] = imm;
-                op_en[0] = 1;
-                mem_addr_out = rslt[0];
+            MEMORY: begin // load and store
+                src1[0] = d_in.rs1_dat;
+                src2[0] = d_in.imm_val;
+                op_en1[ADD] = 1;
+                mem_addr_out = rslt1[0];
                 case(op_spec)
-                    4'b0000: begin // lb
+                    LB: begin // lb
                         mem_read_en = 1;
                         mem_write_en = 0;
                     end
-                    4'b0001: begin // lh
+                    LH: begin // lh
                         mem_read_en = 1;
                         mem_write_en = 0;
                     end
-                    4'b0010: begin // lw
+                    LW: begin // lw
                         mem_read_en = 1;
                         mem_write_en = 0;
                     end
-                    4'b0011: begin // lbu
+                    LBU: begin // lbu
                         mem_read_en = 1;
                         mem_write_en = 0;
                     end
-                    4'b0100: begin // lhu
+                    LHU: begin // lhu
                         mem_read_en = 1;
                         mem_write_en = 0;
                     end
-                    4'b0101: begin // sb
+                    SB: begin // sb
                         mem_read_en = 0;
                         mem_write_en = 1;
-                        mem_dat_out = {24{1'b0}, rs2_dat[7:0]};
+                        mem_dat_out = {24{1'b0}, d_in.rs2_dat[7:0]};
                     end
-                    4'b0110: begin // sh
+                    SH: begin // sh
                         mem_read_en = 0;
                         mem_write_en = 1;
-                        mem_dat_out = {16{1'b0}, rs2_dat[15:0]};
+                        mem_dat_out = {16{1'b0}, d_in.rs2_dat[15:0]};
                     end
-                    4'b0111: begin // sw
+                    SW: begin // sw
                         mem_read_en = 0;
                         mem_write_en = 1;
-                        mem_dat_out = rs2_dat;
+                        mem_dat_out = d_in.rs2_dat;
                     end
                     default: begin
                     end
                 endcase
             end
-            3'b010: begin // branch
-                src1[0] = instr_addr_in;
-                src2[0] = imm;
-                op_en[0] = 1;
-                jmp_addr_out_t = rslt[0];
+            BRANCH: begin // branch
+                src1[1] = d_in.instr_addr;
+                src2[1] = d_in.imm_val;
+                op_en2[ADD] = 1;
+                e_t.jmp_addr = rslt2[ADD];
                 case (op_spec):
-                    4'b0000: begin
-                        src1[10] = rs1_dat;
-                        src2[10] = rs2_dat;
-                        op_en[10] = 1;
-                        jmp_take_t = (&rslt[10]);
+                    BEQ: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[EQ] = 1;
+                        e_t.jmp_take = (&rslt1[EQ]);
                     end
-                    4'b0001: begin
-                        src1[10] = rs1_dat;
-                        src2[10] = rs2_dat;
-                        op_en[10] = 1;
-                        jmp_take_t = ~(&rslt[10]);
+                    BNE: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[EQ] = 1;
+                        e_t.jmp_take = ~(&rslt1[EQ]);
                     end
-                    4'b0010: begin
-                        src1[8] = rs1_dat;
-                        src2[8] = rs2_dat;
-                        op_en[8] = 1;
-                        jmp_take_t = (&rslt[8]);
+                    BLT: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[SLT] = 1;
+                        e_t.jmp_take = (&rslt1[SLT]);
                     end
-                    4'b0011: begin
-                        src1[8] = rs1_dat;
-                        src2[8] = rs2_dat;
-                        op_en[8] = 1;
-                        jmp_take_t = ~(&rslt[8]);
+                    BGE: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[SLT] = 1;
+                        e_t.jmp_take = ~(&rslt1[SLT]);
                     end
-                    4'b0100: begin
-                        src1[9] = rs1_dat;
-                        src2[9] = rs2_dat;
-                        op_en[9] = 1;
-                        jmp_take_t = ~(&rslt[9]);
+                    BLTU: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[SLTU] = 1;
+                        e_t.jmp_take = (&rslt1[SLTU]);
                     end
-                    4'b0101: begin
-                        src1[9] = rs1_dat;
-                        src2[9] = rs2_dat;
-                        op_en[9] = 1;
-                        jmp_take_t = ~(&rslt[9]);
+                    BGEU: begin
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = d_in.rs2_dat;
+                        op_en1[SLTU] = 1;
+                        e_t.jmp_take = ~(&rslt1[SLTU]);
                     end
                     default: begin
                     end
                 endcase
             end
-            3'b011: begin // jump
+            JUMP: begin // jump
                 src1[0] = 3'b100;
-                src2[0] = instr_addr_in;
-                op_en[0] = 1;
-                rd_dat_out_t = rslt[0];
-                jmp_take_t = 1;
+                src2[0] = d_in.instr_addr;
+                op_en1[ADD] = 1;
+                e_t.reg_dat = rslt1[0];
+                e_t.jmp_tk = 1;
                 case (op_spec):
-                    3'b000: begin
-                        src1[11] = instr_addr_in;
-                        src2[11] = imm;
-                        op_en[11] = 1;
-                        jmp_addr_out_t = rslt[11];
+                    JAL: begin
+                        src1[1] = d_in.instr_addr;
+                        src2[1] = d_in.imm_val;
+                        op_en2[ADD] = 1;
+                        e_t.jmp_addr = rslt2[ADD];
                     end
-                    3'b001: begin
-                        src1[11] = rs1_dat;
-                        rsc2[11] = imm;
-                        op_en[11] = 1;
-                        jmp_addr_out_t = rslt[11];
-                    end
-                    default: begin
-                    end
-                endcase
-            end
-            3'b100: begin // upper immediates
-                case (op_spec)
-                    3'b000: begin
-                        src1[0] = 0;
-                        src2[0] = imm;
-                        op_en[0] = 1;
-                        rd_dat_out_t = rslt[0];
-                    end
-                    3'b001: begin
-                        src1[0] = instr_addr_in;
-                        src2[0] = imm;
-                        op_en[0] = 1;
-                        rd_dat_out_t = rslt[0];
+                    JALR: begin
+                        src1[1] = d_in.rs1_dat;
+                        rsc2[1] = d_in.imm_val;
+                        op_en2[ADD] = 1;
+                        e_t.jmp_addr = rslt2[ADD];
                     end
                     default: begin
                     end
@@ -323,97 +373,27 @@ module execute (
     end
 
     d_register #(
-        ._W(4)
-    ) op_type_s(
+        _W.($bits(e_w_WI))
+    ) e_out_s (
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(),
-        .flush(),
-        
-        .din(op_type),
-        .dout(op_type_out),
-    );
+        .flush(w_e.flush),
+        .en(~stall_in),
 
-    d_register #(
-        ._W(5)
-    ) op_spec_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-        
-        .din(op_spec),
-        .dout(op_spec_out),
-    );
-
-    d_register #(
-        ._W(5)
-    ) rd_ind_out_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-        
-        .din(rd_ind),
-        .dout(rd_ind_out),
-    );
-
-    d_register rd_dat_out_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-
-        .din(rd_dat_out_t),
-        .dout(rd_dat_out)
+        .din(e_t),
+        .dout(e_out)
     );
     
-    // d_register mem_addr_out_s(
-    //     .clk(clk),
-    //     .rst_n(rst_n),
-
-    //     .en(),
-    //     .flush(),
-
-    //     .din(mem_addr_out_t),
-    //     .dout(mem_addr_out)
-    // );
-    
-    // d_register mem_dat_out_s(
-    //     .clk(clk),
-    //     .rst_n(rst_n),
-
-    //     .en(),
-    //     .flush(),
-
-    //     .din(mem_dat_out_t),
-    //     .dout(mem_dat_out)
-    // );
-
-    d_register jmp_addr_out_s(
+    d_ff stall_out_s(
         .clk(clk),
         .rst_n(rst_n),
+        
+        .flush(0),
+        .en(1),
 
-        .en(),
-        .flush(),
-
-        .din(jmp_addr_out_t),
-        .dout(jmp_addr_out)
-    );
-
-    d_ff jmp_take_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-
-        .din(jmp_take_t),
-        .dout(jmp_take)
+        .din(stall_in | w_e.flush),
+        .dout(stall_out)
     );
 
 endmodule;

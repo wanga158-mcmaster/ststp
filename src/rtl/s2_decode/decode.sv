@@ -1,64 +1,58 @@
 `include "register_file.sv"
 `include "signal_sel.sv"
 
+`ifndef _TYPES_H
+`include "../lib/types.svh"
+`endif
+
+`include "../lib/dff.sv"
+
 module decode(
     input logic clk,
     input logic rst_n,
 
-    input logic [31:0] instr_in,
-    input logic [31:0] instr_addr_in, // address of current instruction
+    /* fetch and decode interface */
+    input f_d_WI f_in,
+    input logic [31:0] instr_dat_in,
 
-    output logic [31:0] instr_addr_out, // address of current instruction (unchanged)
-    output logic [3:0] op_type,
-    output logic [4:0] op_spec,
-
-    output logic [4:0] rs1_ind,
-    output logic [4:0] rs2_ind,
-    output logic [4:0] rd_ind,
-    output logic [31:0] rs1_dat,
-    output logic [31:0] rs2_dat,
-    output logic [31:0] imm,
-    output logic r_type,
+    /* decode and execute interface */
+    output d_e_WI d_out,
     
     /* data from writeback stage */
-    input logic [4:0] rd_ind_in,
-    input logic [31:0] rd_dat_in,
-    input logic rd_dat_take,
+    input w_d_WI w_in,
 
-    input logic [31:0] mem_dat,
-    input logic mem_dat_take,
-
-    input logic flush
+    input logic stall_in, // previous stage stall
+    output logic stall_out // signal to next stage stall
 );
 
-    logic [3:0] op_type_t;
-    logic [4:0] op_spec_t;
-    logic [4:0] rs1_ind_t, rs2_ind_t, rd_ind_t;
-    logic [31:0] imm_t;
-    logic r_type_t;
+    d_e_WI d_t;
+    assign d_t.instr_dat = instr_dat_in;
+    assign d_t.instr_addr = f_in.instr_addr;
 
     signal_sel ctrl_unit(
-        .op(instr_in),
+        .op(instr_dat_in),
 
-        .op_type(op_type_t),
-        .op_spec(op_spec_t),
-        .imm(imm_t),
-        .r_type(r_type_t),
+        .op_type(d_t.op_type),
+        .op_spec(d_t.op_spec),
+        .imm(d_t.imm_val),
 
-        .rs1_ind(rs1_ind_t),
-        .rs2_ind(rs2_ind_t),
-        .rd_ind(rd_ind_t)
+        .rs1_ind(d_t.rs1_ind),
+        .rs2_ind(d_t.rs2_ind),
+        .rd_ind(d_t.rd_ind)
     );
 
     logic [4:0] rs_indx[2];
-    assign rs_indx[0] = rs1_ind_t;
-    assign rs_indx[1] = rs2_ind_t;
+    assign rs_indx[0] = d_t.rs1_ind;
+    assign rs_indx[1] = d_t.rs2_ind;
+    logic [31:0] rs_datx[2];
+    assign d_t.rs1_dat = rs_datx[0];
+    assign d_t.rs2_dat = rs_datx[1];
 
-    logic [31:0] rs_dat_t[2], rd_dat_t;
+    logic [31:0] rd_dat;
     logic rd_write_en;
 
-    assign rd_dat_t = rd_dat_in & {32{rd_dat_take}} | mem_dat & {32{mem_dat_take}};
-    assign rd_write_en = rd_dat_take | mem_dat_take;
+    assign rd_dat = w_in.reg_dat & {32{w_in.reg_tk}} | w_in.mem_dat & {32{w_in.mem_tk}};
+    assign rd_write_en = w_in.reg_tk | w_in.mem_tk;
 
     register_file regf(
         .clk(clk),
@@ -66,152 +60,36 @@ module decode(
 
         .read_en(1'b1),
         .read_addr(rs_indx),
-        .read_data(rs_dat_t),
+        .read_data(rs_datx),
 
-        .write_en(rd_write),
-        .write_addr(rd_ind_in),
-        .write_data(rd_dat_t)
+        .write_en(rd_write_en),
+        .write_addr(w_in.rd_ind),
+        .write_data(rd_dat)
     );
 
     d_register #(
-        ._W(32)
-    ) instr_addr_s (
+        ._W($bits(d_e_WI))
+    ) d_out_s (
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(1'b1),
-        .flush(1'b0),
+        .en(~stall_in),
+        .flush(w_d.flush),
 
-        .din(instr_addr_in),
-        .dout(instr_addr_out)
-    )
+        .din(d_t),
+        .dout(d_out)
+    );
 
-    d_register #(
-        ._W(4)
-    ) op_type (
+    d_ff stall_out_s(
         .clk(clk),
         .rst_n(rst_n),
+        
+        .en(1),
+        .flush(0),
 
-        .en(1'b1),
-        .flush(1'b0),
+        .din(stall_in | w_d.flush),
+        .dout(stall_out)
+    );
 
-        .din(op_type_t),
-        .dout(op_type)
-    )
-
-    d_register #(
-        ._W(5)
-    ) op_spec (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(op_spec_t),
-        .dout(op_spec)
-    )
-
-    d_register #(
-        ._W(5)
-    ) rs1_ind_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rs1_ind_t),
-        .dout(rs1_ind)
-    )
-
-    d_register #(
-        ._W(5)
-    ) rs2_ind_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rs2_ind_t),
-        .dout(rs2_ind)
-    )
-
-    d_register #(
-        ._W(5)
-    ) rd_ind_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rd_ind_t),
-        .dout(rd_ind)
-    )
-
-    d_register #(
-        ._W(32)
-    ) rs1_dat_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rs_dat_t[0]),
-        .dout(rs1_dat)
-    )
-
-    d_register #(
-        ._W(32)
-    ) rs2_dat_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rs_dat_t[1]),
-        .dout(rs2_dat)
-    )
-
-    d_register #(
-        ._W(32)
-    ) rd_dat_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(rd_dat_t),
-        .dout(rd_dat)
-    )
-
-    d_register #(
-        ._W(32)
-    ) imm_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(imm_t),
-        .dout(imm)
-    )
-
-    d_ff r_type_s (
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(1'b1),
-        .flush(1'b0),
-
-        .din(r_type_t),
-        .dout(r_type)
-    )
 
 endmodule;

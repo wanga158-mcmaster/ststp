@@ -4,7 +4,7 @@ module program_counter (
 
     input logic inc, // increment
     input logic ld, // load
-    input logic stll, // stall
+    input logic stall, // stall
 
     input logic [31:0] rst_addr, // reset address
     input logic [31:0] ld_addr, // load address (jumps)
@@ -12,22 +12,21 @@ module program_counter (
     output logic [31:0] pc_out // program counter output address
 );
 
-    logic [31:0] nxt_pc;
-
-    logic [31:0] pc_inc;
+    logic [31:0] nxt_pc, pc_inc;
     
     pc_adder nxt_inc(
         .addr(nxt_pc),
         .mode(1'b0),
 
         .addr_inc(pc_inc)
-    )
+    );
  
     always_ff @(posedge clk) begin // to do: check for valid address
         if (!rst_n) nxt_pc <= rst_addr;
         else if (ld) nxt_pc <= ld_addr;
         else if (inc) nxt_pc <= pc_inc;
-        else if (stll) nxt_pc <= nxt_pc;
+        else if (stall) nxt_pc <= nxt_pc;
+        else nxt_pc <= 0;
     end
 
     assign pc_out = nxt_pc;
@@ -40,10 +39,6 @@ module pc_adder (
 
     output logic [31:0] addr_inc;
 );
-    
-    always_comb begin
-        if (mode) nxt_pc = nxt_pc + 2;
-        else nxt_pc = nxt_pc + 4;
-    end
+    assign addr_inc = mode ? addr + 2 : addr + 4;
 
 endmodule;

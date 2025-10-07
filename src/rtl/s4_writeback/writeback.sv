@@ -1,174 +1,141 @@
+`ifndef _TYPES_H
+`include "../lib/types.svh"
+`endif
+
+`include "../lib/dff.sv"
+
 module writeback(
     input logic clk,
     input logic rst_n,
 
-    input logic [3:0] op_type, // operation type out, unchanged
-    input logic [4:0] op_spec, // operation spec out, unchanged
+    input e_w_WI e_in,
+    input [31:0] mem_dat,
 
-    input logic [4:0] rd_ind, // rd index out, unchanged
-    input logic [31:0] rd_dat, // rd data
-
-    input logic [31:0] jmp_addr, // jump pc address data
-    input logic jmp_take, // jump or not
-
-    input logic [31:0] mem_dat, // data from memory
-
-    output logic [4:0] rd_ind_out, // rd index out, unchanged, forward to decode stage
-    output logic [31:0] rd_dat_out, // rd data, forward to decode stage
-    output logic rd_dat_take, // take rd data
-
-    output logic [31:0] mem_dat_out, // memory data out
-    output logic mem_dat_take, // take memory data
-
-    output logic [31:0] jmp_addr_out, // jump pc address data, forward to fetch stage
-    output logic jmp_take_out // jump or not, forward to fetch stage
+    output w_f_WI w_f_out,
+    output w_d_WI w_d_out,
+    output w_e_WI w_e_out,
+    
+    input logic stall_in, // previous stage stall
 );
 
-    logic rd_dat_take_t, mem_dat_take_t, jmp_take_t;
-    logic [31:0] mem_dat_t;
+    w_d_WI w_d_t;
+    w_f_WI w_f_t;
+    w_e_WI w_e_t;
+
+    assign w_d_t.reg_dat = e_in.reg_dat;
+    assign w_f_t.jmp_addr = e_in.jmp_addr;
 
     always_comb begin
         case (op_type)
-            3'b000: begin // basic math
-                rd_dat_take_t = 1;
-                mem_dat_take_t = 0;
-                jmp_take_t = 0;
+            ARITHMETIC: begin // basic math
+                w_d_t.reg_tk = 1;
+                w_d_t.mem_tk = 0;
+                w_f_t.jmp_tk = 0;
             end
-            3'b001: begin // load store
-                rd_dat_take = 0;
-                jmp_take_t = 0;
+            MEMORY: begin // load store
+                w_d_t.reg_tk = 0;
+                w_d_t.jmp_tk = 0;
                 case (op_spec)
                     4'b0000: begin // lb
-                        mem_dat_t = {24{mem_dat[7]}, mem_dat[7:0]};
-                        mem_dat_take_t = 1;
+                        w_d_t.mem_dat = {24{mem_dat[7]}, mem_dat[7:0]};
+                        w_d_t.mem_tk = 1;
                     end
                     4'b0001: begin // lh
-                        mem_dat_t = {16{mem_dat[15]}, mem_dat[15:0]};
-                        mem_dat_take_t = 1;
+                        w_d_t.mem_dat = {16{mem_dat[15]}, mem_dat[15:0]};
+                        w_d_t.mem_tk = 1;
                     end
                     4'b0010: begin // lw
-                        mem_dat_t = mem_dat;
-                        mem_dat_take_t = 1;
+                        w_d_t.mem_dat = mem_dat;
+                        w_d_t.mem_tk = 1;
                     end
                     4'b0011: begin // lbu
-                        mem_dat_t = {24{1'b0}, mem_dat[7:0]};
-                        mem_dat_take_t = 1;
+                        w_d_t.mem_dat = {24{1'b0}, mem_dat[7:0]};
+                        w_d_t.mem_tk = 1;
                     end
                     4'b0100: begin // lhu
-                        mem_dat_t = {16{1'b0}, mem_dat[15:0]};
+                        w_d_t.mem_dat = {16{1'b0}, mem_dat[15:0]};
                         mem-dat_take_t = 1;
                     end
                     4'b0101: begin // sb
-                        mem_dat_t = 0;
-                        mem_dat_take_t = 0;
+                        w_d_t.mem_dat = 0;
+                        w_d_t.mem_tk = 0;
                     end
                     4'b0110: begin
-                        mem_dat_t = 0;
-                        mem_dat_take_t = 0; // sh
+                        w_d_t.mem_dat = 0;
+                        w_d_t.mem_tk = 0; // sh
                     end
                     4'b0111: begin
-                        mem_dat_t = 0;
-                        mem_dat_take_t = 0; // sw
+                        w_d_t.mem_dat = 0;
+                        w_d_t.mem_tk = 0; // sw
                     end
                 endcase
             end
-            3'b010: begin // branch
-                rd_dat_take = 0;
-                mem_dat_take_t = 0;
-                jmp_take_t = jmp_take;
+            BRANCH: begin // branch
+                w_d_t.reg_tk = 0;
+                w_d_t.mem_tk = 0;
+                w_f_t.jmp_tk = jmp_take;
             end
-            3'b011: begin
-                rd_dat_take = 1;
-                mem_dat_take_t = 0;
-                jmp_take_t = 1; // assert (jmp_take_t = jmp_take)
-            end
-            3'b100: begin
-                rd_dat_take = 1;
-                mem_dat_take_t = 0;
-                jmp_take_t = 0;
+            JUMP: begin
+                w_d_t.reg_tk = 1;
+                w_d_t.mem_tk = 0;
+                w_f_t.jmp_tk = 1; // assert (w_d_t.jmp_tk = jmp_take)
             end
             default: begin
             end
         endcase
     end
 
-    d_register #(
-        ._W(5)
-    ) rd_ind_s(
+    assign w_d_t.flush = w_f_t.jmp_tk;
+    assign w_e_t.flush = w_f_t.jmp_tk;
+    
+    logic flush_t;
+    dff flush_s(
         .clk(clk),
         .rst_n(rst_n),
+        
+        .en(1),
+        .flush(0),
 
-        .en(),
-        .flush(),
-
-        .din(rd_ind),
-        .dout(rd_ind_out)
+        .din(w_f_t.jmp_tk),
+        .dout(flush_t)
     );
     
-    d_register rd_dat_s(
+    d_register #(
+        ._W($bits(w_d_WI))
+    ) w_d_s (
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(),
-        .flush(),
-        
-        .din(rd_dat),
-        .dout(rd_dat_out)
-    );
+        .en(stall_in),
+        .flush(flush_t),
 
-    d_register rd_dat_take_s(
+        .din(w_d_t),
+        .dout(w_d_out)
+    );
+    d_register #(
+        ._W($bits(w_f_WI))
+    ) w_f_s(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(),
-        .flush(),
-        
-        .din(rd_dat_take_t),
-        .dout(rd_dat_take)
-    );
+        .en(stall_in),
+        .flush(flush),
 
-    d_register mem_dat_s(
+        .din(w_f_t),
+        .dout(w_f_out)
+    );
+    d_register #(
+        ._W($bits(w_e_WI))
+    ) w_e_s(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(),
-        .flush(),
-        
-        .din(mem_dat_t),
-        .dout(mem_dat_out)
+        .en(stall_in),
+        .flush(flush),
+
+        .din(w_f_t),
+        .dout(w_f_out)
     );
 
-    d_register mem_dat_take_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-        
-        .din(mem_dat_take_t),
-        .dout(mem_dat_take)
-    );
-
-    d_register jmp_addr_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-        
-        .din(jmp_addr),
-        .dout(jmp_addr_out)
-    );
-
-    d_register jmp_take_s(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .en(),
-        .flush(),
-        
-        .din(jmp_take_t),
-        .dout(jmp_take_out)
-    );
 
 endmodule;

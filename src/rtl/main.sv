@@ -4,60 +4,54 @@
 `include "s4/writeback.sv"
 `include "lib/memory.sv"
 
+`ifndef _TYPES_H
+`include "../lib/types.svh"
+`endif
+
+
 module main(
     input logic clk,
     input logic rst_n
 );
 
     /* instruction memory & fetch interface */
-    logic [31:0] instr_dat, instr_addr_m;
+    logic [31:0] instr_dat_m, instr_addr;
 
-    /* fetch & decode interface */
-    logic [31:0] instr_addr_d, instr_dat_d;
+    /* fetch -> decode interface */
+    f_d_WI f_d;
+    logic [31:0] instr_dat_f;
+    logic stall_f_out;
 
-    /* decode & execute interface */
-    logic [31:0] instr_dat_e;
-    logic [3:0] op_type;
-    logic [4:0] op_spec;
-    logic [4:0] rs1_ind, rs2_ind, rd_ind;
-    logic [31:0] rs1_dat, rs2_dat, imm;
-    logic [31:0] r_type;
+    /* decode -> execute interface */
+    d_e_WI d_e;
+    logic stall_d_out;
 
-    /* execute & writeback interface */
-    logic [3:0] op_type_w;
-    logic [4:0] op_spec_w;
-    logic [4:0] rd_ind_w;
-    logic [31:0] rd_dat_w;
-    logic [31:0] jmp_addr;
-    logic jmp_take;
+    /* execute -> writeback interface */
+    e_w_WI e_w;
+    logic stall_e_out;
 
-    /* execute & storage memory interface */
-    logic [31:0] st_mem_addr;
-    logic [31:0] st_mem_dat;
+    /* execute -> storage memory interface */
+    logic [31:0] st_mem_addr, st_mem_dat_in;
     logic st_mem_read, st_mem_write;
 
-    /* storage memory & writeback interface */
-    logic [31:0] st_mem_dat_w;
+    /* storage memory -> writeback interface */
+    logic [31:0] st_mem_dat_out;
 
-    /* writeback & decode interface */
-    logic [4:0] rd_ind_d;
-    logic [31:0] rd_dat_d;
-    logic rd_dat_take_d;
+    /* writeback -> fetch interface */
+    w_f_WI w_f;
 
-    logic [31:0] st_mem_dat_d;
-    logic st_mem_dat_take;
+    /* writeback -> decode interface */
+    w_d_WI w_d;
 
-    /* writeback & fetch interface */
-
-    logic [31:0] jmp_addr_f;
-    logic jmp_take_f;
+    /* writeback -> execute interface */
+    w_e_WI w_e;
 
     memory instr_mem( // immutable
         .clk(clk),
         .rst_n(rst_n),
 
         .read_en(1'b1),
-        .read_addr(instr_addr_m),
+        .read_addr(instr_addr),
         .read_data(instr_dat),
 
         .write_en(1'b0),
@@ -65,115 +59,81 @@ module main(
         .write_data(1'b0)
     );
 
-    memory storage_mem(
-        .clk(clk),
-        .rst_n(rst_n),
-
-        .read_en(st_mem_write),
-        .read_addr(st_mem_addr),
-        .read_data(st_mem_dat_w),
-        
-        .write_en(st_mem_write),
-        .write_addr(st_mem_addr),
-        .write_data(st_mem_dat)
-    );
-
     fetch s1(
         .clk(clk),
         .rst_n(rst_n),
 
         .rst_addr({32{1'b0}}),
+        
+        .instr_dat_in(instr_dat),
+        .instr_addr_out_m(instr_addr),
 
-        .instr_mem(instr_dat),
+        .f_out(f_d),
+        .instr_dat_out(instr_dat_f),
 
-        .instr_mem_out(instr_dat_d),
-        .instr_addr_to_mem(instr_addr_m),
-        .instr_addr_to_decode(instr_addr_d),
+        .w_in(w_f),
+        .stall_out(stall_f_out)
 
-        .jmp_addr(jmp_addr_f),
-        .jmp_take(jmp_take_f)
     );
 
     decode s2(
         .clk(clk),
         .rst_n(rst_n),
 
-        .instr_in(instr_dat_d),
-        .instr_addr_in(instr_addr_d),
+        .f_in(f_d),
+        .instr_dat_in(instr_dat_f),
 
-        .instr_addr_out(instr_dat_e),
-        .op_type(op_type),
-        .op_spec(op_spec),
+        .d_out(d_e),
+        
+        .w_in(w_d),
 
-        .rs1_ind(rs1_ind),
-        .rs2_ind(rs2_ind),
-        .rd_ind(rd_ind),
-        .rs1_dat(rs1_dat),
-        .rs2_dat(rs2_dat),
-        .imm(imm),
-        .r_type(r_type),
-
-        .rd_ind_in(rd_ind_d),
-        .rd_dat_in(rd_dat_d),
-        .rd_dat_take(rd_dat_take_d),
-
-        .mem_dat(st_mem_dat_d),
-        .mem_dat_take(st_mem_dat_take)
+        .stall_in(stall_f_out),
+        .stall_out(stall_d_out)
     );
 
     execute s3(
         .clk(clk),
         .rst_n(rst_n),
 
-        .instr_addr_in(instr_dat_e),
-        .op_type(op_type),
-        .op_spec(op_spec),
+        .d_in(d_e),
+        .e_out(e_w),
 
-        .rs1_ind(rs1_ind),
-        .rs2_ind(rs2_ind),
-        .rd_ind(rd_ind),
-        .rs1_dat(rs1_dat),
-        .rs2_dat(rs2_dat),
-        .imm(imm),
-        .r_type(r_type),
-
-        .op_type_out(op_type_w),
-        .op_spec_out(op_spec_w),
-        .rd_ind_out(rd),
-        .rd_dat_out(rd_dat_w),
-        .jmp_addr_out(jmp_addr),
-        .jmp_take(jmp_take),
+        .w_in(w_e),
 
         .mem_addr_out(st_mem_addr),
-        .mem_dat_out(st_mem_dat),
+        .mem_dat_out(st_mem_dat_in),
         .mem_read_en(st_mem_read),
         .mem_write_en(st_mem_write),
+
+        .stall_in(stall_d_out),
+        .stall_out(stall_e_out)
+    );
+
+    memory storage_mem(
+        .clk(clk),
+        .rst_n(rst_n),
+
+        .read_en(st_mem_read),
+        .read_addr(st_mem_addr),
+        .read_data(st_mem_dat_out),
+
+        .write_en(st_mem_write),
+        .write_addr(st_mem_addr),
+        .write_data(st_mem_dat_in)
     );
 
     writeback s4(
         .clk(clk),
         .rst_n(rst_n),
 
-        .op_type(op_type_w),
-        .op_spec(op_spec_w),
+        .e_in(e_w),
+        .mem_dat(st_mem_dat_out),
 
-        .rd_ind(rd_ind_w),
-        .rd_dat(rd_dat_w),
+        .w_f_out(w_f),
+        .w_d_out(w_d),
+        .w_e_out(w_e)
 
-        .jmp_addr(jmp_addr),
-        .jmp_take(jmp_take),
-
-        .mem_dat(st_mem_dat_w),
-
-        .rd_ind_out(rd_ind_d),
-        .rd_dat_out(rd_dat_d),
-        .rd_dat_take(rd_dat_take_d),
-
-        .mem_dat_out(st_mem_dat_d),
-        .mem_dat_take(st_mem_dat_take),
-
-        .jmp_addr_out(jmp_addr_f),
-        .jmp_take_out(jmp_take)
+        .stall_in(stall_e_out)
     );
 
 endmodule;
