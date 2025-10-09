@@ -1,7 +1,7 @@
-**ststp**\
-**a Risc-V based processor implementation**\
+# ststp
+## a Risc-V based processor implementation
 Serves more for my own learning experiment than for any real-world use
-cases.\
+cases
 
 # Device Overview
 
@@ -14,7 +14,7 @@ compressed, and bit manipulation extensions soon.
 
 ## Top-Level Block Diagram
 
-![block diagram as of now](img/block_diagram.png){#fig1 width="100%"}
+![block diagram as of now](docs/img/block_diagram.png)
 
 ## Memory
 
