@@ -10,6 +10,7 @@ using std::cout;
 vluint64_t sim_time = 0;
 
 int main(int argc, char** argv, char** env) {
+    srand(time(0));
     Verilated::commandArgs(argc, argv);
     V_DUT *dut = new V_DUT;
     Verilated::traceEverOn(true);
@@ -40,7 +41,7 @@ int main(int argc, char** argv, char** env) {
 
 /*
 
-verilator --trace --x-assign unique --x-initial unique -cc _DUT.sv --exe _DUT_tb.cpp
+verilator --trace --x-assign unique --x-initial unique -cc -I../../rtl/_DIR/ _DUT.sv --exe _DUT_tb.cpp
 
 make -C obj_dir -f V_DUT.mk V_DUT
 

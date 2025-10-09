@@ -6,13 +6,11 @@
 
 `include "../lib/dff.sv"
 
-
-module fetch(
+module fetch (
     input logic clk,
     input logic rst_n,
 
-    input logic [31:0] rst_addr, // pc reset address
-
+    input logic [31:0] rst_addr,
     /* fetch and instruction memory interface */
     input logic [31:0] instr_dat_in, // instruction data from instruction memory
     output logic [31:0] instr_addr_out_m, // instruction address to instruction memory
@@ -31,7 +29,7 @@ module fetch(
     logic [31:0] instr_addr;
 
     assign f_t.instr_addr = instr_addr;
-    assign instr_addr_out = instr_addr;
+    assign instr_addr_out_m = instr_addr;
     assign instr_dat_out = instr_dat_in;
 
     program_counter pc(
@@ -39,17 +37,17 @@ module fetch(
         .rst_n(rst_n),
 
         .inc(~w_in.jmp_tk),
-        .load(w_in.jmp_tk),
+        .ld(w_in.jmp_tk),
         .stll(1'b0),
-
-        .ld_addr(w_in.jmp_addr),
-        .rst_addr(rst_addr),
+        
+        .ld_dat(w_in.jmp_addr),
+        .rst_addr(0),
 
         .pc_out(instr_addr)
     );
     
     d_register #(
-        .W($bits(f_d_WI))
+        ._W($bits(f_d_WI))
     ) f_out_s (
         .clk(clk),
         .rst_n(rst_n),
@@ -61,14 +59,14 @@ module fetch(
         .dout(f_out)
     );
 
-    d_ff stall_out_s( // stall for one cycle after jump
+    d_ff stall_out_s( // stall for one cycle after jump/reset
         .clk(clk),
-        .rst_n(rst_n),
+        .rst_n(1'b1),
 
         .en(1'b1),
-        .flush(1'b1),
+        .flush(1'b0),
 
-        .din(w_in.jmp_tk),
+        .din(w_in.jmp_tk | ~rst_n),
         .dout(stall_out)
     );
 
