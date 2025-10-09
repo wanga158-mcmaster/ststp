@@ -29,11 +29,9 @@ Fetch: gets instruction from instruction memory. Passes along program
 counter and raw instruction to decode. Always assumes branch is not
 taken, static prediction.
 
-![expected waveform after
-reset](docs/img/reset_and_regular_operation.png){#fig2 width=".7\\textwidth"}
+![expected waveform after reset](docs/img/reset_and_regular_operation.png)
 
-![expected waveform after jump](docs/img/jump_taken.png){#fig3
-width=".7\\textwidth"}
+![expected waveform after jump](docs/img/jump_taken.png)
 
 Decode: gets raw instruction and raw instruction address (pc) from fetch
 stage. Passes along decoded instruction, decoded immediate, register
