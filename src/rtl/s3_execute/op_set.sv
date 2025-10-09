@@ -17,7 +17,6 @@
 `include "op_impl/_div_impl.sv"
 `include "op_impl/_rem_impl.sv"
 
-
 module _add(
     input logic [31:0] a,
     input logic [31:0] b,

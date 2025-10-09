@@ -22,7 +22,7 @@ module fetch (
     /* writeback and fetch interface */
     input w_f_WI w_in,
 
-    output logic stall_out // stall
+    output logic stall_out_ft // stall
 );
 
     f_d_WI f_t;
@@ -59,7 +59,7 @@ module fetch (
         .dout(f_out)
     );
 
-    d_ff stall_out_s( // stall for one cycle after jump/reset
+    d_ff stall_out_ft_s( // stall for one cycle after jump/reset
         .clk(clk),
         .rst_n(1'b1),
 
@@ -67,7 +67,7 @@ module fetch (
         .flush(1'b0),
 
         .din(w_in.jmp_tk | ~rst_n),
-        .dout(stall_out)
+        .dout(stall_out_ft)
     );
 
 

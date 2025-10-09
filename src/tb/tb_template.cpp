@@ -9,6 +9,16 @@ using std::cout;
 #define MAX_SIM_TIME 99
 vluint64_t sim_time = 0;
 
+#DEFINE chk(a, b) chk_f(a, b, #b)
+
+void chk_f(int expct, int exprm, std::string s) {
+    cout << "@t=" << sim_time << " for " << s << ", EXPECTED: " << expct << ", EXPERIMENTAL: " << exprm;
+    if (expct != exprm) {
+        cout << ", ERR!";
+    }
+    cout << "\n";
+}
+
 int main(int argc, char** argv, char** env) {
     srand(time(0));
     Verilated::commandArgs(argc, argv);
@@ -23,7 +33,6 @@ int main(int argc, char** argv, char** env) {
     int pcc = 0; // posedge clock count
 
     while (sim_time < MAX_SIM_TIME) {
-
         dut->clk ^= 1;
         dut->eval();
         if (dut->clk) {
