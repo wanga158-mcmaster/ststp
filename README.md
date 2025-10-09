@@ -1,20 +1,20 @@
-# ststp
-
-a risc-v based implementation
-
-serves more for my own experimentation than any real-world usecases
+**ststp**\
+**a Risc-V based processor implementation**\
+Serves more for my own learning experiment than for any real-world use
+cases.\
 
 # Device Overview
 
 ## General Description
 
 Ststp is a four stage (fetch, decode, execute, writeback) pipelined
-RISC-V processor utilizing the harvard architectural design. It currently
-implements the base RV32IM standardnd, and hopefully the compressed and bit manipulation extensions soon.
+RISC-V processor utilizing a Harvard architectural design. It currently
+implements the base RV32I standard, and hopefully the multiply,
+compressed, and bit manipulation extensions soon.
 
 ## Top-Level Block Diagram
 
-![block diagram as of now](docs/img/block_diagram.png)
+![block diagram as of now](img/block_diagram.png){#fig1 width="100%"}
 
 ## Memory
 
@@ -28,6 +28,12 @@ implementation clearer.
 Fetch: gets instruction from instruction memory. Passes along program
 counter and raw instruction to decode. Always assumes branch is not
 taken, static prediction.
+
+![expected waveform after
+reset](docs/img/reset_and_regular_operation.png){#fig2 width=".7\\textwidth"}
+
+![expected waveform after jump](docs/img/jump_taken.png){#fig3
+width=".7\\textwidth"}
 
 Decode: gets raw instruction and raw instruction address (pc) from fetch
 stage. Passes along decoded instruction, decoded immediate, register
