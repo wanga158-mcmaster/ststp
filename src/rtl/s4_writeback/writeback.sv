@@ -54,7 +54,7 @@ module writeback(
                     end
                     4'b0100: begin // lhu
                         w_d_t.mem_dat = {16{1'b0}, mem_dat[15:0]};
-                        mem-dat_take_t = 1;
+                        w_d_t.mem_tk = 1;
                     end
                     4'b0101: begin // sb
                         w_d_t.mem_dat = 0;
@@ -106,7 +106,7 @@ module writeback(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(stall_in),
+        .en(~stall_in),
         .flush(flush_t),
 
         .din(w_d_t),
@@ -118,7 +118,7 @@ module writeback(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(stall_in),
+        .en(~stall_in),
         .flush(flush),
 
         .din(w_f_t),
@@ -130,11 +130,11 @@ module writeback(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(stall_in),
+        .en(~stall_in),
         .flush(flush),
 
-        .din(w_f_t),
-        .dout(w_f_out)
+        .din(w_e_t),
+        .dout(w_e_out)
     );
 
 

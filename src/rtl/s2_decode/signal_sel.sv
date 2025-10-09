@@ -7,9 +7,9 @@ module signal_sel (
     output logic [6:0] op_spec, // specific operation of type
     output logic [31:0] imm, // assembled immediate
     
-    output logic [31:0] rs1_ind,
-    output logic [31:0] rs2_ind,
-    output logic [31:0] rd_ind
+    output logic [4:0] rs1_ind,
+    output logic [4:0] rs2_ind,
+    output logic [4:0] rd_ind
 
 );
 
@@ -24,13 +24,13 @@ module signal_sel (
     logic [24:0] raw_imm;
     assign raw_imm = op[31:7];
 
-    assign rd = op[11:7];
-    assign rs1 = op[19:15];
-    assign rs2 = op[24:20];
+    assign rd_ind = op[11:7];
+    assign rs1_ind = op[19:15];
+    assign rs2_ind = op[24:20];
 
     always_comb begin
         case (opcode)
-            7'0110011: begin // r-type fmt, arithmetic
+            7'b0110011: begin // r-type fmt, arithmetic
                 op_type = ARITHMETIC;
                 op_spec[6] = 0; // 7th bit used to determine immediate or register value
                 case (funct7)
@@ -60,6 +60,8 @@ module signal_sel (
                             3'b011: begin // sltu
                                 op_spec[5:0] = SLTU;
                             end
+                            default: begin
+                            end
                         endcase
                     end
                     7'b0100000: begin
@@ -70,13 +72,15 @@ module signal_sel (
                             3'b101: begin // sra
                                 op_spec[5:0] = SRA;
                             end
+                            default: begin
+                            end
                         endcase
                     end
                 endcase
                 imm = 1'b0;
                 r_type = 1'b0;
             end
-            7'0010011: begin // i-type fmt, arithmetic immediate
+            7'b0010011: begin // i-type fmt, arithmetic immediate
                 op_type = ARITHMETIC;
                 op_spec[6] = 1;
                 case (funct3)
@@ -108,11 +112,13 @@ module signal_sel (
                     3'b011: begin // sltui
                         op_spec[5:0] = SLTU;
                     end
+                    default: begin
+                    end
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[24:13]};
                 r_type = 1'b1;
             end
-            7'0000011: begin // i-type fmt, load
+            7'b0000011: begin // i-type fmt, load
                 op_type = MEMORY;
                 case(funct3)
                     3'b000: op_spec = LB; // lb
@@ -120,17 +126,21 @@ module signal_sel (
                     3'b010: op_spec = LW; // lw
                     3'b100: op_spec = LBU; // lbu
                     3'b101: op_spec = LHU; // lhu
+                    default: begin
+                    end
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[24:13]};
             end
-            7'0100011: begin // s-type fmt, store
+            7'b0100011: begin // s-type fmt, store
                 op_type = MEMORY;
                 case(funct3)
                     3'b000: op_spec = SB; // sb
                     3'b001: op_spec = SH; // sh
                     3'b010: op_spec = SW; // sw
+                    default: begin
+                    end
                 endcase
-                imm = {{20{raw_imm[24]}}, raw_imm[24:18], raw_imm[4:0]}
+                imm = {{20{raw_imm[24]}}, raw_imm[24:18], raw_imm[4:0]};
             end
             7'b1100011: begin // b-type fmt, branch
                 op_type = BRANCH;
@@ -141,6 +151,8 @@ module signal_sel (
                     3'b101: op_spec = BGE; // bge
                     3'b110: op_spec = BLTU; // bltu
                     3'b111: op_spec = BGEU; // bgeu
+                    default: begin
+                    end
                 endcase
                 imm = {{20{raw_imm[24]}}, raw_imm[0], raw_imm[23:18], raw_imm[4:1], 1'b0}
             end

@@ -141,7 +141,7 @@ module execute (
         .en(op_en1[REM]),
 
         .aer(rslt1[REM])
-    )
+    );
 
     logic r_tk;
     assign r_tk = op_spec[6];
@@ -231,8 +231,8 @@ module execute (
                     end
                     MUL: begin
                         op_en1[MUL] = 1;
-                        src1[8] = d_in.rs1_dat;
-                        src2[8] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
+                        src1[0] = d_in.rs1_dat;
+                        src2[0] = (~r_tk) ? d_in.rs2_dat : d_in.imm_val;
                         e_t.reg_dat = rslt1[MUL];
 
                     end
@@ -359,7 +359,7 @@ module execute (
                     end
                     JALR: begin
                         src1[1] = d_in.rs1_dat;
-                        rsc2[1] = d_in.imm_val;
+                        src2[1] = d_in.imm_val;
                         op_en2[ADD] = 1;
                         e_t.jmp_addr = rslt2[ADD];
                     end
@@ -373,7 +373,7 @@ module execute (
     end
 
     d_register #(
-        _W.($bits(e_w_WI))
+        ._W($bits(e_w_WI))
     ) e_out_s (
         .clk(clk),
         .rst_n(rst_n),

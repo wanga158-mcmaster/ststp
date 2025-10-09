@@ -62,7 +62,7 @@ module decode(
         .read_addr(rs_indx),
         .read_data(rs_datx),
 
-        .write_en(rd_write_en),
+        .write_en(rd_write_en & ~w_in.flush & ~stall_in),
         .write_addr(w_in.rd_ind),
         .write_data(rd_dat)
     );
@@ -87,7 +87,7 @@ module decode(
         .en(1),
         .flush(0),
 
-        .din(stall_in | w_d.flush),
+        .din(stall_in | w_in.flush),
         .dout(stall_out)
     );
 
