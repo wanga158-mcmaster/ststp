@@ -52,7 +52,7 @@ int main(int argc, char** argv, char** env) {
 
 /*
 
-verilator --trace --x-assign unique --x-initial unique -cc -I../../rtl/_DIR/ _DUT.sv --exe _DUT_tb.cpp
+verilator --trace --x-assign unique --x-initial unique -cc -I../../rtl/lib/ -I../../rtl/s1_fetch/ -I../../rtl/s2_decode/ -I../../rtl/s3_execute/ -I../../rtl/s4_writeback _DUT.sv --exe _DUT_tb.cpp
 
 make -C obj_dir -f V_DUT.mk V_DUT
 

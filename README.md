@@ -1,5 +1,5 @@
 # ststp
-## a Risc-V based processor implementation
+## a RISC-V based processor implementation
 Serves more for my own learning experiment than for any real-world use
 cases
 
