@@ -13,6 +13,7 @@ module fetch (
     input logic [31:0] rst_addr,
     /* fetch and instruction memory interface */
     input logic [31:0] instr_dat_in, // instruction data from instruction memory
+    input logic instr_dat_v, // instruction valid
     output logic [31:0] instr_addr_out_m, // instruction address to instruction memory
 
     /* fetch and decode interface */
@@ -66,7 +67,7 @@ module fetch (
         .en(1'b1),
         .flush(1'b0),
 
-        .din(w_in.jmp_tk | ~rst_n),
+        .din(w_in.jmp_tk | ~rst_n | ~instr_dat_v),
         .dout(stall_out_ft)
     );
 

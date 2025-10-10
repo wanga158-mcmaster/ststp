@@ -35,6 +35,7 @@ void reset_fetch_chk(int pcc) {
         dut->rst_n = 1;
         chk(1, dut->stall_out_ft, "stall_out_ft");
         chk(0, dut->instr_addr_out_m, "instr_addr_out_m");
+        chk(0, dut->instr_dat_out, "instr_dat_out");
         instr_addr_out_m = 0;
     }
 }
@@ -71,6 +72,7 @@ void jmp_chk(int pcc) {
         chk(0, dut->stall_out_ft, "stall_out_ft");
     }
 }
+
 int main(int argc, char** argv, char** env) {
     srand(time(0));
     Verilated::commandArgs(argc, argv);

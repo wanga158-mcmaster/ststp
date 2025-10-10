@@ -34,7 +34,7 @@ module writeback(
             end
             MEMORY: begin // load store
                 w_d_t.reg_tk = 0;
-                w_d_t.jmp_tk = 0;
+                w_f_t.jmp_tk = 0;
                 case (op_spec)
                     4'b0000: begin // lb
                         w_d_t.mem_dat = {24{mem_dat[7]}, mem_dat[7:0]};
@@ -73,7 +73,7 @@ module writeback(
             BRANCH: begin // branch
                 w_d_t.reg_tk = 0;
                 w_d_t.mem_tk = 0;
-                w_f_t.jmp_tk = jmp_take;
+                w_f_t.jmp_tk = e_in.jmp_tk;
             end
             JUMP: begin
                 w_d_t.reg_tk = 1;

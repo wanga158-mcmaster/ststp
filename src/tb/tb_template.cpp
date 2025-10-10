@@ -8,6 +8,8 @@ using std::cout;
 
 #define MAX_SIM_TIME 99
 vluint64_t sim_time = 0;
+V_DUT * dut;
+VerilatedVcdC * m_t;
 
 #DEFINE chk(a, b) chk_f(a, b, #b)
 
@@ -22,9 +24,9 @@ void chk_f(int expct, int exprm, std::string s) {
 int main(int argc, char** argv, char** env) {
     srand(time(0));
     Verilated::commandArgs(argc, argv);
-    V_DUT *dut = new V_DUT;
+    dut = new V_DUT;
     Verilated::traceEverOn(true);
-    VerilatedVcdC *m_t = new VerilatedVcdC;
+    m_t = new VerilatedVcdC;
     dut->trace(m_t, 33);
     m_t->open("wf.vcd");
 
