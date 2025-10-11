@@ -40,7 +40,8 @@ stage. Passes along decoded instruction, decoded immediate, register
 indexes and data, and instruction address to execute stage. The register
 file is instantiated in this stage. Gets data to write to register file
 from writeback stage.
-![] (docs/img/decode_general_waveform.png)
+
+![](docs/img/decode_general_waveform.png)
 *expected operation for decode*
 
 The execute stage gets decoded operation from the execute stage, and necessary
