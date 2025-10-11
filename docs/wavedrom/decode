@@ -1,0 +1,17 @@
+{signal: [
+  {name: 'clk', wave: 'P.......'},
+  {name: 'rst_n', wave: '1.......'},
+  {},
+  
+  {name: 'f_in.addr', wave: 'x.345678', data: ["pc", "pc + 4", "pc + 8", "pc + 12", "pc + 16", "pc + 20"]},
+  {name: 'instr_dat_in', wave: 'x.345678', data: ["addi x0, x0, 33", "sub x1, x2, x3", "and x5, x8, x13", "mul x2, x1, x0", "sb x10, 4(x5)", "xor x3, x13, x23"]},
+  {name: 'd_out.op_type', wave: 'x..34567', data: ["ARITH", "ARITH", "ARITH", "ARITH", "MEM"]},
+  {name: 'd_out.op_spec', wave: 'x..34567', data: ["ADD", "SUB", "AND", "MUL", "SB"]},
+  {name: 'd_out.rd_ind', wave: 'x..34567', data: ["0", "1", "5", "2", "10"]},  
+  {name: 'd_out.rs1_dat', wave: 'x..34567', data: ["x0_dat", "x2_dat", "x5_dat", "x1_dat", "x10_dat"]},
+  {name: 'd_out.rs2_dat', wave: 'x..34567', data: ["0", "x3_dat", "x13_dat", "x0_dat", "x5_dat"]},
+  {name: 'd_out.imm', wave: 'x..34567', data: ["33", "0", "0", "0", "4"]},
+  
+],
+  config: {hscale: 3}
+}

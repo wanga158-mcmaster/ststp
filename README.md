@@ -25,7 +25,7 @@ implementation clearer.
 
 ## Stages
 
-Fetch: gets instruction from instruction memory. Passes along program
+The fetch stage gets instruction from instruction memory. Passes along program
 counter and raw instruction to decode. Always assumes branch is not
 taken, static prediction.
 
@@ -35,13 +35,15 @@ taken, static prediction.
 ![](docs/img/jump_taken.png)
 *expected waveform after jump*
 
-Decode: gets raw instruction and raw instruction address (pc) from fetch
+The decode stage gets raw instruction and raw instruction address (pc) from fetch
 stage. Passes along decoded instruction, decoded immediate, register
 indexes and data, and instruction address to execute stage. The register
 file is instantiated in this stage. Gets data to write to register file
 from writeback stage.
+![] (docs/img/decode_general_waveform.png)
+*expected operation for decode*
 
-Execute: gets decoded operation from the execute stage, and necessary
+The execute stage gets decoded operation from the execute stage, and necessary
 data as well as address. Performs operation. Passes along the modified
 data and register indexes to the writeback stage, and whether or not a
 branch was taken if it was a branch/jump instruction. Passes along the
@@ -49,7 +51,7 @@ calculated load/store address, as well as data for store, to the data
 memory in advance so the data memory can be fed to the writeback stage
 at the appropriate posedge.
 
-Writeback: gets modified data, register indexes, branch address, and
+The writeback stage gets modified data, register indexes, branch address, and
 branch taken from execute stage. Gets load data from data memory. Passes
 along data memory, modified data, and register indexes to the register
 file in the decode stage. Passes along branch address and branch taken
@@ -57,5 +59,5 @@ to the fetch stage. It should also pass along a flush signal to all
 stages when it finds a branch is taken, as the static prediction always
 predicts for a branch not taken (a.k.a next_pc = cur_pc + 4 bytes).
 
-Control/status registers currently aren't implemented. ECALL and EBREAK
+Floating point ops, Control/status registers currently aren't implemented. ECALL and EBREAK
 aren't implemented.

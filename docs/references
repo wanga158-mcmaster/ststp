@@ -2,7 +2,6 @@ Textbooks
 Digital Design and Computer Architecture, RISC-V Edition - Sarah Harris, David Harris
 Computer Organization and Design, RISC-V Edition - David Patterson, John Hennessy
 
-
 Reference Implementations
 https://github.com/tscheipel/HaDes-V
 https://github.com/siliscale/Tiny-Vedas/
@@ -16,3 +15,6 @@ https://drive.google.com/file/d/1uviu1nH-tScFfgrovvFCrj7Omv8tFtkp/view?usp=drive
 
 Verilator
 https://itsembedded.com/dhd/verilator_1/
+
+Misc
+https://verificationacademy.com/cookbook/uvm-universal-verification-methodology/testbench-basics/

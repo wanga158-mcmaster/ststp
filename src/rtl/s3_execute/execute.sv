@@ -33,8 +33,8 @@ module execute (
     e_w_WI e_t;
     assign e_t.rd_ind = d_in.rd_ind;
 
-    logic op_en1[128], op_en2[128];
-    logic [31:0] rslt1[128], rslt2[128], src1[2], src2[2];
+    logic op_en1[64], op_en2[64];
+    logic [31:0] rslt1[64], rslt2[64], src1[2], src2[2];
     logic [31:0] calc_addr;
 
     _add add1(
@@ -143,7 +143,7 @@ module execute (
         .aer(rslt1[REM])
     );
 
-    logic r_tk;
+    logic r_tk; // take register data vs immediate
     assign r_tk = op_spec[6];
 
     always_comb begin
@@ -151,7 +151,7 @@ module execute (
             src1[i] = 0;
             src2[i] = 0;
         end
-        for (int i = 0; i < 128; ++i) begin
+        for (int i = 0; i < 64; ++i) begin
             op_en1[i] = 0;
             op_en2[i] = 0;
         end
