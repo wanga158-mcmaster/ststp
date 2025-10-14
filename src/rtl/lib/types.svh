@@ -109,12 +109,16 @@ typedef struct packed {
     logic [31:0] reg_dat; // register data
     logic [31:0] mem_dat; // storage memory data
     logic flush;
-    logic stall;
 } w_d_WI /*verilator public */;
 
 /* writeback -> execute interface */
 
 typedef struct packed {
+    logic [4:0] rd_ind;
+    logic reg_tk; // take register data or no
+    logic mem_tk; // take data memory data or no
+    logic [31:0] reg_dat; // register data
+    logic [31:0] mem_dat; // storage memory data
     logic flush;
 } w_e_WI /*verilator public */;
 

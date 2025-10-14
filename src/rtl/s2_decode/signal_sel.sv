@@ -5,8 +5,8 @@ module signal_sel (
 
     output logic [4:0] op_type, // 0 -> math, 1 -> load/store, 2 -> branch, 3 -> load
     output logic [6:0] op_spec, // specific operation of type
-    output logic [31:0] imm, // assembled immediate
     
+    output logic [31:0] imm, // assembled immediate
     output logic [4:0] rs1_ind,
     output logic [4:0] rs2_ind,
     output logic [4:0] rd_ind

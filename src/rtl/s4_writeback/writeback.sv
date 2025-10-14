@@ -15,7 +15,8 @@ module writeback(
     output w_d_WI w_d_out,
     output w_e_WI w_e_out,
     
-    input logic stall_in, // previous stage stall
+    input logic stall_in_bk, // previous stage stall
+    output logic stall_out_bk
 );
 
     w_d_WI w_d_t;
@@ -87,19 +88,14 @@ module writeback(
 
     assign w_d_t.flush = w_f_t.jmp_tk;
     assign w_e_t.flush = w_f_t.jmp_tk;
-    
-    logic flush_t;
-    dff flush_s(
-        .clk(clk),
-        .rst_n(rst_n),
-        
-        .en(1),
-        .flush(0),
+    assign w_e_t.rd_ind = w_d_t.rd_ind;
+    assign w_e_t.reg_tk = w_d_t.reg_tk;
+    assign w_e_t.mem_tk = w_d_t.mem_tk;
+    assign w_e_t.reg_dat = w_d_t.reg_dat;
+    assign w_e_t.mem_dat = w_e_t.mem_dat;
 
-        .din(w_f_t.jmp_tk),
-        .dout(flush_t)
-    );
-    
+    assign stall_out_bk = 0; // never send backwards stall for now. will be implemented along with multi cycle ops eg division
+
     d_register #(
         ._W($bits(w_d_WI))
     ) w_d_s (
@@ -107,19 +103,20 @@ module writeback(
         .rst_n(rst_n),
 
         .en(~stall_in),
-        .flush(flush_t),
+        .flush(stall_in_bk),
 
         .din(w_d_t),
         .dout(w_d_out)
     );
+
     d_register #(
         ._W($bits(w_f_WI))
     ) w_f_s(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(~stall_in),
-        .flush(flush),
+        .en(1),
+        .flush(stall_in_bk),
 
         .din(w_f_t),
         .dout(w_f_out)
@@ -131,7 +128,7 @@ module writeback(
         .rst_n(rst_n),
 
         .en(~stall_in),
-        .flush(flush),
+        .flush(stall_in_bk),
 
         .din(w_e_t),
         .dout(w_e_out)

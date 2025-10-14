@@ -26,10 +26,11 @@ module execute (
     output logic mem_read_en, // storage section read enable
     output logic mem_write_en, // storage section write enable
 
-    input logic stall_in, // previous stage stall
-    output logic stall_out // signal to next stage stall
+    input logic stall_in_bk, // stall from decode
+    output logic stall_out_bk, // stall to decode backwards
+    input logic stall_in_ft, // stall from writeback
+    output logic stall_out_ft // signal to next stage stall
 );
-    
     e_w_WI e_t;
     assign e_t.rd_ind = d_in.rd_ind;
 
@@ -252,6 +253,7 @@ module execute (
                     default: begin
                     end
                 endcase
+                if ()
             end
             MEMORY: begin // load and store
                 src1[0] = d_in.rs1_dat;
@@ -378,8 +380,8 @@ module execute (
         .clk(clk),
         .rst_n(rst_n),
 
-        .flush(w_e.flush),
-        .en(~stall_in),
+        .flush(w_in.flush),
+        .en(~stall_out_bk),
 
         .din(e_t),
         .dout(e_out)
@@ -392,8 +394,8 @@ module execute (
         .flush(0),
         .en(1),
 
-        .din(stall_in | w_e.flush),
-        .dout(stall_out)
+        .din(stall_in_bk | w_in.flush),
+        .dout(stall_out_ft)
     );
 
 endmodule;

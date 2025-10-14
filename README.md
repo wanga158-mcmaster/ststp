@@ -9,8 +9,7 @@ cases
 
 Ststp is a four stage (fetch, decode, execute, writeback) pipelined
 RISC-V processor utilizing a Harvard architectural design. It currently
-implements the base RV32I standard, and hopefully the multiply,
-compressed, and bit manipulation extensions soon.
+implements the base RV32IM standard, and hopefully the bit manipulation extension soon.
 
 ## Top-Level Block Diagram
 

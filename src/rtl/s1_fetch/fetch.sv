@@ -22,8 +22,9 @@ module fetch (
 
     /* writeback and fetch interface */
     input w_f_WI w_in,
-
-    output logic stall_out_ft // stall
+    
+    input logic stall_in_ft, // stall in, backwards from decode
+    output logic stall_out_ft // stall out, forwards to decode
 );
 
     f_d_WI f_t;
@@ -39,7 +40,7 @@ module fetch (
 
         .inc(~w_in.jmp_tk),
         .ld(w_in.jmp_tk),
-        .stll(1'b0),
+        .stll(stall_in_ft),
         
         .ld_dat(w_in.jmp_addr),
         .rst_addr(0),
@@ -53,7 +54,7 @@ module fetch (
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(1'b1),
+        .en(~stall_in_ft),
         .flush(w_in.jmp_tk),
 
         .din(f_t),

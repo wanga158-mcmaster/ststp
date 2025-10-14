@@ -20,11 +20,13 @@ module decode(
     
     /* data from writeback stage */
     input w_d_WI w_in,
-
-    input logic stall_in, // previous stage stall
-    output logic stall_out // signal to next stage stall
+    
+    input logic stall_in_bk, // stall from fetch
+    output logic stall_out_bk, // stall to fetch
+    input logic stall_in_ft, // stall from execute
+    output logic stall_out_ft // signal to next stage stall
 );
-
+    
     d_e_WI d_t;
     assign d_t.instr_dat = instr_dat_in;
     assign d_t.instr_addr = f_in.instr_addr;
@@ -62,10 +64,12 @@ module decode(
         .read_addr(rs_indx),
         .read_data(rs_datx),
 
-        .write_en(rd_write_en & ~w_in.st),
+        .write_en(rd_write_en),
         .write_addr(w_in.rd_ind),
         .write_data(rd_dat)
     );
+
+    assign stall_out_bk = stall_in_ft;
 
     d_register #(
         ._W($bits(d_e_WI))
@@ -73,8 +77,8 @@ module decode(
         .clk(clk),
         .rst_n(rst_n),
 
-        .en(~stall_in),
-        .flush(w_d.flush),
+        .en(~stall_in_ft),
+        .flush(w_in.flush),
 
         .din(d_t),
         .dout(d_out)
@@ -87,8 +91,8 @@ module decode(
         .en(1),
         .flush(0),
 
-        .din(stall_in | w_in.flush),
-        .dout(stall_out)
+        .din(stall_in_bk | w_in.flush),
+        .dout(stall_out_ft)
     );
 
 

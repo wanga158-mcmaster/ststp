@@ -12,7 +12,7 @@ module register_file (
 );
     
     logic [31:0] registers[32];
-    
+
     assign registers[0] = '0;
 
     always @(posedge clk) begin
@@ -28,7 +28,10 @@ module register_file (
     end
 
     always_comb begin
-        if (read_en) begin
+        if (rst_n | ~read_en) begin // if reset or read enable is not on
+            read_dat[0] = 0;
+            read_dat[1] = 0;
+        end else begin
             for (int i = 0; i < 2; ++i) begin
                 if (write_en && write_addr === read_addr[i]) begin // forward data from writeback
                     read_dat[i] = write_dat;
@@ -36,9 +39,6 @@ module register_file (
                     read_dat[i] = registers[read_addr[i]];
                 end
             end
-        end else begin
-            read_dat[0] = 0;
-            read_dat[1] = 0;
         end
     end
 

@@ -29,6 +29,8 @@ module tb;
     logic stall_out_ft;
     f_d_WI f_out;
     w_f_WI w_in;
+    logic stall_in_bk;
+    assign stall_in_bk = 0;
 
     fetch fet(
         .clk(clk),
@@ -40,6 +42,7 @@ module tb;
         .f_out(f_out),
         .instr_dat_out(instr_dat_out),
         .w_in(w_in),
+        .stall_in_bk(stall_in_bk),
         .stall_out_ft(stall_out_ft)
     );
 
