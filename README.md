@@ -1,7 +1,9 @@
 # ststp
 ## a RISC-V based processor implementation
-Serves more for my own learning experiment than for any real-world use
-cases
+
+Currently under construction.
+
+In Progress: physical implementation on Artix A7 100-T FPGA board, finalized test suite.
 
 # Device Overview
 
@@ -13,7 +15,7 @@ implements the base RV32IM standard, and hopefully the bit manipulation extensio
 
 ## Top-Level Block Diagram
 
-![block diagram as of now](docs/img/block_diagram.png)
+![block diagram as of now](docs/img/gen_block.png)
 
 ## Memory
 
