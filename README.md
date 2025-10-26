@@ -3,7 +3,7 @@
 
 Currently under construction.
 
-In Progress: physical implementation on Artix A7 100-T FPGA board, finalized test suite.
+In progress: physical implementation on Artix A7 100-T FPGA board, finalized test suite.
 
 # Device Overview
 
